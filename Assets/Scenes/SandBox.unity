@@ -133,7 +133,7 @@ GameObject:
   - component: {fileID: 94928487}
   - component: {fileID: 94928488}
   m_Layer: 5
-  m_Name: Line Presenter
+  m_Name: LinePresenter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -786,8 +786,9 @@ GameObject:
   - component: {fileID: 1202123580}
   - component: {fileID: 1202123579}
   - component: {fileID: 1202123581}
+  - component: {fileID: 1202123582}
   m_Layer: 5
-  m_Name: Speaker Image
+  m_Name: SpeakerImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -810,7 +811,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: -250, y: 300}
-  m_SizeDelta: {x: 386, y: 688}
+  m_SizeDelta: {x: 600, y: 806}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1202123579
 MonoBehaviour:
@@ -832,7 +833,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 1961733047577885447, guid: 1e60aa380d71c8541bcde99517df1cca, type: 3}
+  m_Sprite: {fileID: 21300000, guid: c1fab77fad2209045a576f5f1edbabe4, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -870,6 +871,18 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &1202123582
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1202123577}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 217d5573593f07f49b16f338c566c9d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PortraitChanger
 --- !u!1 &1692020820
 GameObject:
   m_ObjectHideFlags: 0
@@ -882,7 +895,7 @@ GameObject:
   - component: {fileID: 1692020822}
   - component: {fileID: 1692020823}
   m_Layer: 0
-  m_Name: Dialogue System
+  m_Name: DialogueSystem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -955,7 +968,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 610c541718d694070a21327d1ae62e75, type: 3}
   m_Name: 
   m_EditorClassIdentifier: YarnSpinner.Unity::Yarn.Unity.InMemoryVariableStorage
-  showDebug: 0
+  showDebug: 1
   debugTextView: {fileID: 0}
 --- !u!1 &1788301942
 GameObject:
