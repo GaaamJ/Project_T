@@ -169,7 +169,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 94928482}
   m_Enabled: 1
-  m_Alpha: 1
+  m_Alpha: 0
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
@@ -190,11 +190,11 @@ MonoBehaviour:
   showCharacterNameInLine: 0
   characterNameText: {fileID: 0}
   characterNameContainer: {fileID: 0}
-  useFadeEffect: 1
+  useFadeEffect: 0
   fadeUpDuration: 0.25
   fadeDownDuration: 0.1
-  autoAdvance: 0
-  autoAdvanceDelay: 1
+  autoAdvance: 1
+  autoAdvanceDelay: 1.5
   typewriterStyle: 1
   lettersPerSecond: 60
   wordsPerSecond: 10
@@ -696,8 +696,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 3120ae4f574f81b47ab5fff45234d87f, type: 2}
+  m_sharedMaterial: {fileID: -3651726251104904313, guid: 3120ae4f574f81b47ab5fff45234d87f, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -721,8 +721,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 40
-  m_fontSizeBase: 40
+  m_fontSize: 48
+  m_fontSizeBase: 48
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -925,7 +925,7 @@ MonoBehaviour:
   - {fileID: 94928485}
   verboseLogging: 0
   autoStart: 1
-  startNode: SandBox
+  startNode: Start
   runSelectedOptionAsLine: 0
   allowOptionFallthrough: 1
   onNodeStart:
@@ -1125,7 +1125,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 1
-  m_AdditionalShaderChannelsFlag: 1
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
