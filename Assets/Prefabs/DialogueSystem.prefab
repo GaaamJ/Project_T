@@ -266,7 +266,6 @@ GameObject:
   - component: {fileID: 8502371565270064332}
   - component: {fileID: 2248135958652057595}
   - component: {fileID: 4623986826486394096}
-  - component: {fileID: 1344532855679005045}
   m_Layer: 5
   m_Name: LinePresenter
   m_TagString: Untagged
@@ -374,29 +373,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
   m_HorizontalFit: 0
   m_VerticalFit: 2
---- !u!114 &1344532855679005045
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1030209760822217531}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a0cd0d0412ea34813959f8ddaf02a6eb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: YarnSpinner.Unity::Yarn.Unity.OptionsPresenter
-  canvasGroup: {fileID: 0}
-  optionViewPrefab: {fileID: 2576261519635394347, guid: 980624452922fa14bb6e583b8fea052c, type: 3}
-  showsLastLine: 1
-  lastLineText: {fileID: 7967554913512363486}
-  lastLineContainer: {fileID: 0}
-  lastLineCharacterNameText: {fileID: 0}
-  lastLineCharacterNameContainer: {fileID: 0}
-  showUnavailableOptions: 0
-  useFadeEffect: 1
-  fadeUpDuration: 0.25
-  fadeDownDuration: 0.1
 --- !u!1 &1925526302391503828
 GameObject:
   m_ObjectHideFlags: 0

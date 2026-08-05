@@ -459,6 +459,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1344532855679005045, guid: 68bccfabc77410a4080a5f8b243be31e, type: 3}
+      propertyPath: showsLastLine
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2687782343961581468, guid: 68bccfabc77410a4080a5f8b243be31e, type: 3}
       propertyPath: m_Name
       value: DialogueSystem
@@ -531,9 +535,17 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5857163937257482789, guid: 68bccfabc77410a4080a5f8b243be31e, type: 3}
+      propertyPath: m_Padding.m_Bottom
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 7359851999316644694, guid: 68bccfabc77410a4080a5f8b243be31e, type: 3}
+      propertyPath: m_Alpha
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9117672380852714740, guid: 68bccfabc77410a4080a5f8b243be31e, type: 3}
-      propertyPath: useFadeEffect
-      value: 1
+      propertyPath: showsLastLine
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -1,5 +1,5 @@
 ﻿title: Test
-position: -20,-892
+position: -302,-976
 ---
 <<declare $theaEmotion = "Idle">>
 
@@ -15,16 +15,95 @@ Thea: 언니가 보고 싶어요...
 <<wait 1.5>>
 ===
 title: OptionTest
-position: 217,-893
+position: 150,-954
 ---
 <<set $theaEmotion = "Speaking">>
 Thea: 시계, 시계가 순서대로 빛나요. [pause=2000/]
 Thea: 으음... 9시, 3시, 12시, 6시 순서대로 빛나요!
-Narrator: 당신은 성공적으로 노드를 이어나간다 ... [pause=2000/]
-Thea: 자, 잠시만요. 이 쪽에도 노드가 생겼어요. 
+<<SetAlpha SpeakerImage 0>>
+Narrator: 당신은 성공적으로 별들을 이어나간다 ... [pause=2000/]
+<<SetAlpha SpeakerImage 1>>
+Thea: 자, 잠시만요. 이 쪽에도 빛나는 게 생겼어요!
+<<SetAlpha SpeakerImage 0>>
 Narrator: 당신의 눈 앞에 시계가 빛나기 시작한다 ... [pause=2000/]
 Narrator: 11시, 7시, 5시, 1시 순서대로 빛난다 ... [pause=2000/]
-Thea: 창문 밖에 뭔가 있어요... 빠, 빨리 말해 주세요. 흐흑...
--> Player: 11시, 7시, 5시, 1시
--> Player: 7시, 5시, 1시, 11시
+<<SetAlpha SpeakerImage 1>>
+Thea: 창문 밖에 뭔가 있어요. 흐흑... <br>흐, 흔들려요. 억지로 열려고 하는 것 같은데요...!
+<<jump Step1>>
+===
+
+title: Fail
+position: -202,-556
+---
+Thea: 아, 아닌 것 같아요. 전부 꺼졌어요...
+Thea: 히, 히이익! 차, 창문이 열리려고 해요! 
+<<wait 2>>
+<<jump Step1>>
+===
+
+title: Step1
+position: 165,-789
+---
+Thea: 어, 어디로 가면 되나요? 빨리 말해 주세요...!
+-> 11시 
+    <<jump Step2>>
+-> 7시
+    <<jump Fail>>
+-> 5시
+    <<jump Fail>>
+-> 1시
+    <<jump Fail>>
+===
+
+title: Step2
+position: 218,-548
+---
+Thea: 다음은요?!
+-> 11시 
+    <<jump Fail>>
+-> 7시
+    <<jump Step3>>
+-> 5시
+    <<jump Fail>>
+-> 1시
+    <<jump Fail>>
+===
+
+title: Step3
+position: 216,-341
+---
+Thea: 이어졌어요!
+Thea: 차, 창문이 흔들리는 게 더 빨라졌어요... <br>다음 거, 빨리 말해주세요...!
+-> 11시 
+    <<jump Fail>>
+-> 7시
+    <<jump Fail>>
+-> 5시
+    <<jump Step4>>
+-> 1시
+    <<jump Fail>>
+===
+
+title: Step4
+position: 216,-341
+---
+Thea: 돼, 됐어요! 다음은요?!
+-> 11시 
+    <<jump Fail>>
+-> 7시
+    <<jump Fail>>
+-> 5시
+    <<jump Fail>>
+-> 1시
+    <<jump Step5>>
+===
+
+title: Step5
+position: 216,-341
+---
+Thea: 조, 좋았어. 이제 다시 11시로 이을게요!
+<<wait 2>>
+Thea: 하, 하아... 죽는 줄 알았어요... <br>방금 창문 밖에 누, 눈이 막 달라 붙어서... <br>흐, 흐흑...
+Thea: 어, 언니는 무사하겠죠? 이, 이런 건 혼자서 할 수 없잖아요...
+Thea: 빨리 언니를 찾아야겠어요...
 ===
