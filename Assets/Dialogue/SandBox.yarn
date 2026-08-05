@@ -18,7 +18,12 @@ title: OptionTest
 position: 150,-954
 ---
 <<set $theaEmotion = "Speaking">>
-
+Thea: 시계, 시계가 순서대로 빛나요. [pause=2000/]
+Thea: 으음... 9시, 3시, 12시, 6시 순서대로 빛나요!
+<<SetAlpha SpeakerImage 0>>
+Narrator: 당신은 성공적으로 별들을 이어나간다 ... [pause=2000/]
+<<SetAlpha SpeakerImage 1>>
+Thea: 자, 잠시만요. 이 쪽에도 빛나는 게 생겼어요!
 <<SetAlpha SpeakerImage 0>>
 Narrator: 당신의 눈 앞에 시계가 빛나기 시작한다 ... [pause=2000/]
 Narrator: 11시, 7시, 5시, 1시 순서대로 빛난다 ... [pause=2000/]

@@ -314,9 +314,9 @@ MonoBehaviour:
   fadeUpDuration: 0.25
   fadeDownDuration: 0.1
   autoAdvance: 1
-  autoAdvanceDelay: 1.5
+  autoAdvanceDelay: 2
   typewriterStyle: 1
-  lettersPerSecond: 60
+  lettersPerSecond: 90
   wordsPerSecond: 10
   customTypewriter:
     targetObject: {fileID: 0}
@@ -488,6 +488,7 @@ GameObject:
   - component: {fileID: 2563454590120095956}
   - component: {fileID: 9117672380852714740}
   - component: {fileID: 4426110340149335456}
+  - component: {fileID: 183132669675856237}
   m_Layer: 5
   m_Name: OptionsPresenter
   m_TagString: Untagged
@@ -540,7 +541,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: YarnSpinner.Unity::Yarn.Unity.OptionsPresenter
   canvasGroup: {fileID: 2563454590120095956}
   optionViewPrefab: {fileID: 2576261519635394347, guid: 980624452922fa14bb6e583b8fea052c, type: 3}
-  showsLastLine: 1
+  showsLastLine: 0
   lastLineText: {fileID: 7967554913512363486}
   lastLineContainer: {fileID: 0}
   lastLineCharacterNameText: {fileID: 0}
@@ -575,6 +576,19 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &183132669675856237
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1959098016170282566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9456d7361e32034d934a801ba4fe37a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NumberKeyOptionSelector
+  optionContainer: {fileID: 4245581654146603053}
 --- !u!1 &2687782343961581468
 GameObject:
   m_ObjectHideFlags: 0
@@ -608,6 +622,8 @@ Transform:
   m_Children:
   - {fileID: 6929629629453766072}
   - {fileID: 7945646833085659321}
+  - {fileID: 4268946960175271483}
+  - {fileID: 404424195217778963}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8580549678268193905
@@ -663,6 +679,66 @@ MonoBehaviour:
   m_EditorClassIdentifier: YarnSpinner.Unity::Yarn.Unity.InMemoryVariableStorage
   showDebug: 1
   debugTextView: {fileID: 0}
+--- !u!1 &6387880438769957086
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 404424195217778963}
+  - component: {fileID: 4913636884589814950}
+  - component: {fileID: 7361626369504309770}
+  m_Layer: 0
+  m_Name: MarkUpProcessors
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &404424195217778963
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6387880438769957086}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4896530558945115022}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4913636884589814950
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6387880438769957086}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a968ef973edc54520b248fa3113ae925, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: YarnSpinner.Unity::PaletteMarkerProcessor
+  palette: {fileID: 11400000, guid: 6df01bf68e01943908f9e625c3b0bbc6, type: 2}
+  lineProvider: {fileID: 0}
+--- !u!114 &7361626369504309770
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6387880438769957086}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0901fdc59460943b682c5c4000c44a0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: YarnSpinner.Unity::Yarn.Unity.StyleMarkerProcessor
+  lineProvider: {fileID: 0}
 --- !u!1 &6584888135281424136
 GameObject:
   m_ObjectHideFlags: 0
@@ -800,6 +876,89 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &6678761519815891549
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4268946960175271483}
+  - component: {fileID: 6297295382968203786}
+  - component: {fileID: 194904542894160925}
+  m_Layer: 0
+  m_Name: LineAdvancer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4268946960175271483
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6678761519815891549}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4896530558945115022}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6297295382968203786
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6678761519815891549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61503eb6a998a4af68e0dcbec4aad8cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: YarnSpinner.Unity::Yarn.Unity.LineAdvancer
+  runner: {fileID: 8580549678268193905}
+  presenter: {fileID: 6835377472286265451}
+  separateHurryUpAndAdvanceControls: 0
+  multiAdvanceIsCancel: 0
+  advanceRequestsBeforeCancellingLine: 2
+  inputMode: 0
+  hasTransferredLegacyMapping: 1
+  legacyHurryUpLineAction: {fileID: 0}
+  legacyNextLineAction: {fileID: 0}
+  legacyHurryUpOptionsAction: {fileID: 0}
+  legacyCancelDialogueAction: {fileID: 0}
+  legacyEnableActions: 1
+  legacyHurryUpLineAxis: Jump
+  legacyNextLineAxis: Cancel
+  legacyHurryUpOptionsAxis: Jump
+  legacyCancelDialogueAxis: 
+  legacyHurryUpLineKeyCode: 32
+  legacyNextLineKeyCode: 27
+  legacyHurryUpOptionsKeyCode: 32
+  legacyCancelDialogueKeyCode: 0
+--- !u!114 &194904542894160925
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6678761519815891549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f86c840d98d44410792d746cc2ceaa66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: YarnSpinner.Unity::Yarn.Unity.LineAdvancerInput.InputActions
+  lineAdvancer: {fileID: 6297295382968203786}
+  hurryUpLineAction: {fileID: 6238183519477432662, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+  nextLineAction: {fileID: 0}
+  hurryUpOptionsAction: {fileID: 6238183519477432662, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+  cancelDialogueAction: {fileID: 0}
+  enableActions: 1
 --- !u!1 &6698537452920158157
 GameObject:
   m_ObjectHideFlags: 0
