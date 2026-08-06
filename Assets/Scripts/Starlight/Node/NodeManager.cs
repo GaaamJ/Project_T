@@ -24,13 +24,10 @@ public class NodeManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance == null)
-        {
-            DontDestroyOnLoad(gameObject);
-        }
         Instance = this;
 
         // 씬에 존재하는 모든 Node를 찾아서 allNodes 배열에 저장, 추후 방 이동 시 갱신 필요할 듯?
+        allNodes = FindObjectsByType<Node>(FindObjectsSortMode.None);
         // Inspector 리스트를 정규화된 HashSet으로 변환 (한 번만 계산)
         correctEdges = new HashSet<(Node, Node)>(
             correctEdgeList.Select(e => NormalizeEdge(e.from, e.to))
