@@ -71,14 +71,12 @@ public class PlayerInteractor : MonoBehaviour
             heldTarget = null;
             holdTimer = 0f;
         }
-
     }
 
     public IInteractable GetClosestInteractable()
     {
         // 여러 개 겹쳐 있을 때 제일 가까운 것 선택
         return interactables
-            .Where(i => !i.IsActivated) // 이미 활성화된 대상은 제외
             .OrderBy(i => Vector2.Distance(transform.position, ((MonoBehaviour)i).transform.position)) // 거리순 정렬
             .FirstOrDefault(); // 가장 가까운 대상 반환, 없으면 null
     }

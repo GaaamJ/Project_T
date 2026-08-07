@@ -46,6 +46,7 @@ public class NodeManager : MonoBehaviour
         GiveSymbolHint();
     }
 
+    /* 기존 방식 (한붓그리기, 정해진 순서대로 이어야 하는 경우 사용)
     public void RegisterNodeInteraction(Node node)
     {
         if (lastNode != null && lastNode != node)
@@ -54,6 +55,42 @@ public class NodeManager : MonoBehaviour
             connectedEdges.Add(NormalizeEdge(lastNode, node));
         }
         lastNode = node;
+    }
+    */
+
+    public void TryRegisterNode(Node node)
+    {
+        if (lastNode == null)
+        {
+            // 아직 시작점이 없음 → 이 노드를 시작점으로 선택
+            lastNode = node;
+            lastNode.Select();
+            return;
+        }
+
+        if (lastNode == node)
+        {
+            // 이미 선택된 시작점을 다시 누름 → 선택 해제
+            lastNode.Deselect();   // 시각적 피드백(flip y 등)도 원상복구
+            lastNode = null;
+            return;
+        }
+
+        var edge = NormalizeEdge(lastNode, node);
+
+        if (connectedEdges.Contains(edge))
+        {
+            Debug.Log("already connected");
+            lastNode.Deselect();
+            lastNode = null;
+            return;
+        }
+
+        // 시작점이 있고, 다른 노드를 누름 → 간선 확정
+        DrawConnection(lastNode, node);
+        connectedEdges.Add(edge);
+        lastNode.Deselect();
+        lastNode = null;   // 체이닝 없이 완전히 초기화
     }
 
     // A-B와 B-A를 같은 간선으로 취급하기 위해 정규화
