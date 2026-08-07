@@ -18,15 +18,15 @@ title: OptionTest
 position: 150,-954
 ---
 <<set $theaEmotion = "Speaking">>
-Thea: 시계, 시계가 순서대로 빛나요. [pause=2000/]
+Thea: 시계, 시계가 순서대로 빛나요.
 Thea: 으음... 9시, 3시, 12시, 6시 순서대로 빛나요!
 <<SetAlpha SpeakerImage 0>>
-Narrator: 당신은 성공적으로 별들을 이어나간다 ... [pause=2000/]
+Narrator: 당신은 성공적으로 별들을 이어나간다 ...
 <<SetAlpha SpeakerImage 1>>
 Thea: 자, 잠시만요. 이 쪽에도 빛나는 게 생겼어요!
 <<SetAlpha SpeakerImage 0>>
-Narrator: 당신의 눈 앞에 시계가 빛나기 시작한다 ... [pause=2000/]
-Narrator: 11시, 7시, 5시, 1시 순서대로 빛난다 ... [pause=2000/]
+Narrator: 당신의 눈 앞에 시계가 빛나기 시작한다 ...
+Narrator: 11시, 7시, 5시, 1시 순서대로 빛난다 ...
 <<SetAlpha SpeakerImage 1>>
 Thea: 창문 밖에 뭔가 있어요. 흐흑... <br>흐, 흔들려요. 억지로 열려고 하는 것 같은데요...!
 <<jump Step1>>
@@ -106,4 +106,52 @@ Thea: 조, 좋았어. 이제 다시 11시로 이을게요!
 Thea: 하, 하아... 죽는 줄 알았어요... <br>방금 창문 밖에 누, 눈이 막 달라 붙어서... <br>흐, 흐흑...
 Thea: 어, 언니는 무사하겠죠? 이, 이런 건 혼자서 할 수 없잖아요...
 Thea: 빨리 언니를 찾아야겠어요...
+===
+
+title: StarlightTest
+---
+<<set $theaEmotion = "Speaking">>
+<<ChangeImage SpeakerImage Thea {$theaEmotion}>>
+<<SetAlpha SpeakerImage 1>>
+Thea: 어, 어디 가셨어요?!
+<<SetAlpha SpeakerImage 0>>
+-> 여기 있으니 진정해
+-> 문을 두고 나뉜 것 같아
+<<SetAlpha SpeakerImage 1>>
+Thea: 다행이다... <br>여기는 깜깜해서 아무 것도 보이질 않아서...
+Thea: 무, 무서웠어요.
+Thea: 그래도 이렇게 얘기하니까 <br>뭔가 연결된 기분이라 안심이에요.
+Thea: 그나저나 이 문... <br>아, 아까는 열려 있었으니까 분명 열 방법이 있을 텐데요. 
+Thea: 자, 잠시만요. [pause=2000/] 여기 빛나는 게 보여서.
+Thea: 아까 봤던 것 같은데, 4...[pause=5000/]?
+Thea: ... <br>바, 방금 뭔가 엄청나게 소름이 돋았는데요.
+Thea: 저, 저기요, 신님. 갑자기 좋지 않은 느낌이 드는데요...?
+===
+
+title: SuccessReaction
+---
+<<set $theaEmotion = "Speaking">>
+<<ChangeImage SpeakerImage Thea {$theaEmotion}>>
+<<SetAlpha SpeakerImage 1>>
+Thea: 흐, 흐아아압!
+<<wait 3>>
+Thea: 하, 하아... 하아. <br>진짜 보고 싶었어요...! <br>저, 저 안은 진짜 기분이 너무 나빠서...
+Thea: 뭐라 해야 할까요. <br>아무 것도 없는데 뭔가가 지켜보는 느낌이라고 해야 하나요?
+Thea: 아, 아무튼. 그래도 언니는 이 방에는 오지 않은 것 같아요.
+Thea: 언니는 항상 기록을 남기니까요!
+Thea: 그, 그리고 감사해요. <br>만약 혼자였다면... 으으, 상상하기도 싫어요.
+===
+
+title: FailReaction
+---
+<<set $theaEmotion = "Speaking">>
+<<ChangeImage SpeakerImage Thea {$theaEmotion}>>
+<<SetAlpha SpeakerImage 1>>
+Thea: 자, 잠시마-
+Thea: 으, 후으윽. 뭐, 뭔가 들어왔어요. <br>저, 저게 뭐야-
+<<SetAlpha SpeakerImage 0>>
+Narrator: 안에서 무언가 소리가 들린다...
+<<SetAlpha SpeakerImage 1>>
+Thea: 아, 아, 아, 아, 아, 아, 아, 아, 아, 아, 아, 아. <br>시, 신님. 사, 살려 주세-
+Thea: 케헥... 쿨럭... 어, 언니... 
 ===

@@ -37,7 +37,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 560, y: -40}
+  m_AnchoredPosition: {x: 580, y: -40}
   m_SizeDelta: {x: 600, y: 806}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &962252863038627914
@@ -316,7 +316,7 @@ MonoBehaviour:
   autoAdvance: 1
   autoAdvanceDelay: 2
   typewriterStyle: 1
-  lettersPerSecond: 90
+  lettersPerSecond: 30
   wordsPerSecond: 10
   customTypewriter:
     targetObject: {fileID: 0}
@@ -646,7 +646,7 @@ MonoBehaviour:
   - {fileID: 6835377472286265451}
   - {fileID: 9117672380852714740}
   verboseLogging: 0
-  autoStart: 1
+  autoStart: 0
   startNode: OptionTest
   runSelectedOptionAsLine: 0
   allowOptionFallthrough: 1
@@ -844,7 +844,7 @@ MonoBehaviour:
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
   m_wordSpacing: 0
-  m_lineSpacing: 0
+  m_lineSpacing: 24
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
@@ -1134,7 +1134,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 1
-  m_AdditionalShaderChannelsFlag: 1
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0

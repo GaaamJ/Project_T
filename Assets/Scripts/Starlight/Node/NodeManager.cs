@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Yarn.Unity;
 
 [System.Serializable]
 public struct NodeEdge
@@ -22,6 +24,10 @@ public class NodeManager : MonoBehaviour
     private readonly HashSet<(Node, Node)> connectedEdges = new();
     private readonly List<LineRenderer> drawnLines = new();
 
+    [SerializeField] private DialogueRunner dialogueRunner;
+    [SerializeField] private string symbolHintYarnNode;
+    public static event Action<bool> OnSymbolSubmitted;
+
     void Awake()
     {
         Instance = this;
@@ -32,6 +38,12 @@ public class NodeManager : MonoBehaviour
         correctEdges = new HashSet<(Node, Node)>(
             correctEdgeList.Select(e => NormalizeEdge(e.from, e.to))
         );
+    }
+
+    void Start()
+    {
+        // !! TEST CODE !! 
+        GiveSymbolHint();
     }
 
     public void RegisterNodeInteraction(Node node)
@@ -64,6 +76,7 @@ public class NodeManager : MonoBehaviour
     public bool SubmitSymbol()
     {
         bool success = connectedEdges.SetEquals(correctEdges);
+        OnSymbolSubmitted?.Invoke(success);
         ResetChain();
         return success;
     }
@@ -76,5 +89,16 @@ public class NodeManager : MonoBehaviour
         foreach (var line in drawnLines) Destroy(line.gameObject);
         drawnLines.Clear();
         foreach (var node in allNodes) node.ResetNode();
+    }
+
+    [YarnCommand("GiveSymbolHint")]
+    public void GiveSymbolHint()
+    {
+        if (string.IsNullOrEmpty(symbolHintYarnNode))
+        {
+            Debug.LogWarning("symbolHintYarnNode가 설정되지 않았습니다.");
+            return;
+        }
+        dialogueRunner.StartDialogue(symbolHintYarnNode);
     }
 }
