@@ -1,22 +1,41 @@
 using UnityEngine;
 
+[RequireComponent(typeof(SpriteRenderer))]
 public class Node : MonoBehaviour, IDelayInteractable
 {
     [SerializeField] private float holdDuration = 2f;
     public float HoldDuration => holdDuration;
 
-    public bool IsActivated { get; private set; }
+    public bool IsSelected { get; private set; }
+
+    private SpriteRenderer sR;
+
+    private void Awake()
+    {
+        sR = GetComponent<SpriteRenderer>();
+    }
 
     public void Interact()
     {
-        // 노드가 비활성화되어 있으면 return, 활성화 가능하면 이후 처리
-        if (IsActivated) return;
-        IsActivated = true;
-        NodeManager.Instance.RegisterNodeInteraction(this);
+        NodeManager.Instance.TryRegisterNode(this);
     }
 
     public void ResetNode()
     {
-        IsActivated = false;
+        Deselect();
+    }
+
+    // 단순하게 flipY지만, 추후에 애니메이션이나 다른 시각적 효과를 추가할 수 있음
+    public void Select()
+    {
+        IsSelected = true;
+        sR.flipY = true;
+    }
+
+    public void Deselect()
+    {
+        Debug.Log($"{name} Deselect 호출됨");
+        IsSelected = false;
+        sR.flipY = false;
     }
 }

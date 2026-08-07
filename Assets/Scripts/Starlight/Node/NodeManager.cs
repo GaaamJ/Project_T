@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Yarn.Unity;
 
 [System.Serializable]
 public struct NodeEdge
@@ -22,6 +24,10 @@ public class NodeManager : MonoBehaviour
     private readonly HashSet<(Node, Node)> connectedEdges = new();
     private readonly List<LineRenderer> drawnLines = new();
 
+    [SerializeField] private DialogueRunner dialogueRunner;
+    [SerializeField] private string symbolHintYarnNode;
+    public static event Action<bool> OnSymbolSubmitted;
+
     void Awake()
     {
         Instance = this;
@@ -34,6 +40,13 @@ public class NodeManager : MonoBehaviour
         );
     }
 
+    void Start()
+    {
+        // !! TEST CODE !! 
+        GiveSymbolHint();
+    }
+
+    /* 기존 방식 (한붓그리기, 정해진 순서대로 이어야 하는 경우 사용)
     public void RegisterNodeInteraction(Node node)
     {
         if (lastNode != null && lastNode != node)
@@ -42,6 +55,42 @@ public class NodeManager : MonoBehaviour
             connectedEdges.Add(NormalizeEdge(lastNode, node));
         }
         lastNode = node;
+    }
+    */
+
+    public void TryRegisterNode(Node node)
+    {
+        if (lastNode == null)
+        {
+            // 아직 시작점이 없음 → 이 노드를 시작점으로 선택
+            lastNode = node;
+            lastNode.Select();
+            return;
+        }
+
+        if (lastNode == node)
+        {
+            // 이미 선택된 시작점을 다시 누름 → 선택 해제
+            lastNode.Deselect();   // 시각적 피드백(flip y 등)도 원상복구
+            lastNode = null;
+            return;
+        }
+
+        var edge = NormalizeEdge(lastNode, node);
+
+        if (connectedEdges.Contains(edge))
+        {
+            Debug.Log("already connected");
+            lastNode.Deselect();
+            lastNode = null;
+            return;
+        }
+
+        // 시작점이 있고, 다른 노드를 누름 → 간선 확정
+        DrawConnection(lastNode, node);
+        connectedEdges.Add(edge);
+        lastNode.Deselect();
+        lastNode = null;   // 체이닝 없이 완전히 초기화
     }
 
     // A-B와 B-A를 같은 간선으로 취급하기 위해 정규화
@@ -64,6 +113,7 @@ public class NodeManager : MonoBehaviour
     public bool SubmitSymbol()
     {
         bool success = connectedEdges.SetEquals(correctEdges);
+        OnSymbolSubmitted?.Invoke(success);
         ResetChain();
         return success;
     }
@@ -76,5 +126,16 @@ public class NodeManager : MonoBehaviour
         foreach (var line in drawnLines) Destroy(line.gameObject);
         drawnLines.Clear();
         foreach (var node in allNodes) node.ResetNode();
+    }
+
+    [YarnCommand("GiveSymbolHint")]
+    public void GiveSymbolHint()
+    {
+        if (string.IsNullOrEmpty(symbolHintYarnNode))
+        {
+            Debug.LogWarning("symbolHintYarnNode가 설정되지 않았습니다.");
+            return;
+        }
+        dialogueRunner.StartDialogue(symbolHintYarnNode);
     }
 }

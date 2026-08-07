@@ -3,7 +3,7 @@ using UnityEngine;
 public class Obelisk : MonoBehaviour, IDelayInteractable
 {
     public float HoldDuration => 1f;
-    public bool IsActivated => false; // 항상 상호작용 가능
+    public bool IsSelected => false; // 항상 상호작용 가능
 
     public void Interact()
     {
