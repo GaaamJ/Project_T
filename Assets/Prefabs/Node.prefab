@@ -155,4 +155,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 129132fa555a494479b9a6bda5741393, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Node
-  holdDuration: 1
+  holdDuration: 0.7

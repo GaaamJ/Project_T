@@ -2,12 +2,19 @@ using UnityEngine;
 
 public class Obelisk : MonoBehaviour, IDelayInteractable
 {
-    public float HoldDuration => 1f;
+    private NodeManager myManager;
+
+    public float HoldDuration => .7f;
     public bool IsSelected => false; // 항상 상호작용 가능
+
+    public void SetManager(NodeManager manager)
+    {
+        myManager = manager;
+    }
 
     public void Interact()
     {
-        bool success = NodeManager.Instance.SubmitSymbol();
+        var success = myManager.SubmitSymbol();
 
         if (success)
         {
