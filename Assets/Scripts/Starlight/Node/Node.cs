@@ -9,15 +9,22 @@ public class Node : MonoBehaviour, IDelayInteractable
     public bool IsSelected { get; private set; }
 
     private SpriteRenderer sR;
+    private NodeManager myManager; // 싱글톤 대신 직접 참조 (별빛 #5)
 
     private void Awake()
     {
         sR = GetComponent<SpriteRenderer>();
     }
 
+    // NodeManager가 Awake 시점에 자식 Node들에게 호출해줌
+    public void SetManager(NodeManager manager)
+    {
+        myManager = manager;
+    }
+
     public void Interact()
     {
-        NodeManager.Instance.TryRegisterNode(this);
+        myManager.TryRegisterNode(this);
     }
 
     public void ResetNode()
@@ -25,7 +32,6 @@ public class Node : MonoBehaviour, IDelayInteractable
         Deselect();
     }
 
-    // 단순하게 flipY지만, 추후에 애니메이션이나 다른 시각적 효과를 추가할 수 있음
     public void Select()
     {
         IsSelected = true;
@@ -34,7 +40,6 @@ public class Node : MonoBehaviour, IDelayInteractable
 
     public void Deselect()
     {
-        Debug.Log($"{name} Deselect 호출됨");
         IsSelected = false;
         sR.flipY = false;
     }

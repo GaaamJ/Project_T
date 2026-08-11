@@ -2,19 +2,19 @@ using UnityEngine;
 
 public class EntryDoor : MonoBehaviour, ISymbolReactor
 {
-    [SerializeField] private float moveSpeed = 2f;
+    [SerializeField] private NodeManager nodeManager; // static 대신 직접 참조 (별빛 #5)
     [SerializeField] private Transform destinationPoint;
 
     private bool isOpen;
 
     void OnEnable()
     {
-        NodeManager.OnSymbolSubmitted += OnSymbolResult;
+        nodeManager.OnSymbolSubmitted += OnSymbolResult;
     }
 
     void OnDisable()
     {
-        NodeManager.OnSymbolSubmitted -= OnSymbolResult;
+        nodeManager.OnSymbolSubmitted -= OnSymbolResult;
     }
 
     public void OnSymbolResult(bool success)
