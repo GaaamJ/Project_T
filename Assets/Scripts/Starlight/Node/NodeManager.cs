@@ -40,12 +40,6 @@ public class NodeManager : MonoBehaviour
         );
     }
 
-    void Start()
-    {
-        // !! TEST CODE !! 
-        GiveSymbolHint();
-    }
-
     /* 기존 방식 (한붓그리기, 정해진 순서대로 이어야 하는 경우 사용)
     public void RegisterNodeInteraction(Node node)
     {

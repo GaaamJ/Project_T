@@ -155,3 +155,14 @@ Narrator: 안에서 무언가 소리가 들린다...
 Thea: 아, 아, 아, 아, 아, 아, 아, 아, 아, 아, 아, 아. <br>시, 신님. 사, 살려 주세-
 Thea: 케헥... 쿨럭... 어, 언니... 
 ===
+
+title: AskForHelp
+---
+<<SetAlpha SpeakerImage 0>>
+-> 문에 대해 다시 물어본다.
+<<set $theaEmotion = "Speaking">>
+<<ChangeImage SpeakerImage Thea {$theaEmotion}>>
+<<SetAlpha SpeakerImage 1>>
+Thea: 다시 봐 볼게요.
+Thea: 음... 4에요.
+===

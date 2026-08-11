@@ -489,6 +489,7 @@ GameObject:
   - component: {fileID: 9117672380852714740}
   - component: {fileID: 4426110340149335456}
   - component: {fileID: 183132669675856237}
+  - component: {fileID: 7123730082427070773}
   m_Layer: 5
   m_Name: OptionsPresenter
   m_TagString: Untagged
@@ -589,6 +590,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NumberKeyOptionSelector
   optionContainer: {fileID: 4245581654146603053}
+--- !u!114 &7123730082427070773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1959098016170282566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 842b8cc559593254ab112383fe8e458c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AskHelpTrigger
+  dialogueRunner: {fileID: 8580549678268193905}
+  askHelpAction: {fileID: 6014311302800533823, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+  askHelpYarnNode: AskForHelp
 --- !u!1 &2687782343961581468
 GameObject:
   m_ObjectHideFlags: 0
