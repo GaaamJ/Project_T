@@ -1,9 +1,11 @@
+using Unity.Cinemachine;
 using UnityEngine;
 
 public class EntryDoor : MonoBehaviour, ISymbolReactor
 {
     [SerializeField] private NodeManager nodeManager; // static 대신 직접 참조 (별빛 #5)
     [SerializeField] private Transform destinationPoint;
+    [SerializeField] private CinemachineCamera targetCam; // 씬 전환 시 카메라 전환을 위해 추가
 
     private bool isOpen;
 
@@ -28,6 +30,7 @@ public class EntryDoor : MonoBehaviour, ISymbolReactor
     {
         if (!isOpen || !other.CompareTag("Player")) return;
         other.transform.position = destinationPoint.position;
+        RoomCameraManager.Instance.SwitchTo(targetCam); // 씬 전환 시 카메라 전환
         isOpen = false;
     }
 
