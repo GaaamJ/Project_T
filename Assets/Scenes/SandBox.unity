@@ -547,7 +547,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalPosition: {x: 0, y: 40, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -600,7 +600,7 @@ MonoBehaviour:
     Enabled: 0
     DefaultMode: 2
   DefaultBlend:
-    Style: 1
+    Style: 0
     Time: 2
     CustomCurve:
       serializedVersion: 2
@@ -609,6 +609,17 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   CustomBlends: {fileID: 0}
+--- !u!114 &538652871 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7872375787009815086, guid: 5656db779b9e32d45ab19dfbdc1a6896, type: 3}
+  m_PrefabInstance: {fileID: 266768247975465571}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9dfa5b682dcd46bda6128250e975f58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineCamera
 --- !u!4 &538652872 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 9079207531516132275, guid: 5656db779b9e32d45ab19dfbdc1a6896, type: 3}
@@ -869,11 +880,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1338176057870896849, guid: 5656db779b9e32d45ab19dfbdc1a6896, type: 3}
       propertyPath: m_Name
-      value: CinemachineCamera
+      value: RoomBCam
       objectReference: {fileID: 0}
     - target: {fileID: 7872375787009815086, guid: 5656db779b9e32d45ab19dfbdc1a6896, type: 3}
       propertyPath: Priority.m_Value
-      value: 0
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 9079207531516132275, guid: 5656db779b9e32d45ab19dfbdc1a6896, type: 3}
       propertyPath: m_LocalPosition.x
@@ -925,6 +936,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 9079207531516132275, guid: 5656db779b9e32d45ab19dfbdc1a6896, type: 3}
   m_PrefabInstance: {fileID: 778499527}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &778499529 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7872375787009815086, guid: 5656db779b9e32d45ab19dfbdc1a6896, type: 3}
+  m_PrefabInstance: {fileID: 778499527}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9dfa5b682dcd46bda6128250e975f58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineCamera
 --- !u!1 &960867981
 GameObject:
   m_ObjectHideFlags: 0
@@ -1156,6 +1178,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EntryDoor
   nodeManager: {fileID: 1783890146}
   destinationPoint: {fileID: 2032540723}
+  targetCam: {fileID: 778499529}
 --- !u!61 &1054161337
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -1337,7 +1360,7 @@ Transform:
   m_GameObject: {fileID: 1455187637}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5, y: -3, z: 0}
+  m_LocalPosition: {x: -5, y: 43.9, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -2175,6 +2198,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 303936117}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2084889003
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2084889005}
+  - component: {fileID: 2084889004}
+  m_Layer: 0
+  m_Name: RoomCameraManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2084889004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2084889003}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 453f61bb3fe168045bb2d2557905ebc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RoomCameraManager
+--- !u!4 &2084889005
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2084889003}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &2085901048 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1803761807698550678, guid: 8996d4441ae123048a55c7298021199a, type: 3}
@@ -2343,6 +2410,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ExitDoor
   destinationPoint: {fileID: 159970091}
+  targetCam: {fileID: 538652871}
 --- !u!1001 &266768247975465571
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2353,7 +2421,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1338176057870896849, guid: 5656db779b9e32d45ab19dfbdc1a6896, type: 3}
       propertyPath: m_Name
-      value: CinemachineCamera
+      value: RoomACam
       objectReference: {fileID: 0}
     - target: {fileID: 7872375787009815086, guid: 5656db779b9e32d45ab19dfbdc1a6896, type: 3}
       propertyPath: Priority.m_Value
@@ -2684,3 +2752,4 @@ SceneRoots:
   - {fileID: 1442213020}
   - {fileID: 519420032}
   - {fileID: 619394802}
+  - {fileID: 2084889005}
