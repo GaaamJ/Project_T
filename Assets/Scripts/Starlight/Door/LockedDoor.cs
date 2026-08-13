@@ -1,7 +1,7 @@
 using Unity.Cinemachine;
 using UnityEngine;
 
-public class EntryDoor : MonoBehaviour, ISymbolReactor
+public class LockeDoor : MonoBehaviour, ISymbolReactor
 {
     [SerializeField] private NodeManager nodeManager; // static 대신 직접 참조 (별빛 #5)
     [SerializeField] private Transform destinationPoint;
