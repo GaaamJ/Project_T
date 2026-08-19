@@ -36,7 +36,9 @@ public class StarlightEncounterController : MonoBehaviour
     private EncounterState state = EncounterState.Idle;
     private float remainingTime;
 
-    // 타이머 UI가 참조할 getter (기획서 Q4 답변)
+    // 라운드가 넘어갈 때 발생. SisterGimmickController가 구독해서 Observe()를 재실행한다.
+    public event System.Action OnRoundStarted;
+
     public float RemainingTime => remainingTime;
     public EncounterState State => state;
     public int CurrentRound => currentRound;
@@ -118,6 +120,9 @@ public class StarlightEncounterController : MonoBehaviour
 
         var round = rounds[currentRound];
 
+        // 현재 라운드 후보가 아닌 노드(이전 라운드 잔여 노드 등)는 무시한다.
+        if (!System.Array.Exists(round.candidates, c => c == node)) return;
+
         if (node == round.correctNode)
         {
             // 정답 처리: 노드를 Connected로 바꾸고 앵커와 라인을 그린다.
@@ -139,15 +144,10 @@ public class StarlightEncounterController : MonoBehaviour
                 return;
             }
 
-            // 다음 라운드로 넘어갈 때 타이머를 다시 채우고 정답 노드를 Highlighted로 표시한다.
-            // (Observe/Bind 시퀀서를 다시 태우지 않고 곧바로 다음 라운드가 시작되는 구조)
-            var next = rounds[currentRound];
-            if (next.correctNode != null)
-            {
-                next.correctNode.SetState(Node.NodeState.Highlighted);
-            }
-            remainingTime = timerDuration;
-            // state는 Bound 유지.
+            // 다음 라운드는 Observe부터 다시 시작해야 하므로 Idle로 복귀 후 이벤트 발생.
+            // 타이머와 하이라이트는 TriggerBind()에서 처리한다 (SisterGimmickController 경유).
+            state = EncounterState.Idle;
+            OnRoundStarted?.Invoke();
         }
         else
         {

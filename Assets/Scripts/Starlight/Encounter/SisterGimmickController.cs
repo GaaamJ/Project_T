@@ -12,28 +12,33 @@ public class SisterGimmickController : MonoBehaviour
     [SerializeField] private DialogueRunner dialogueRunner;
 
     [Header("Yarn Nodes")]
-    // 관찰 단계에서 재생할 자매 대사 노드. 이 대사가 끝난 순간이 Bind() 호출 시점이다.
-    [SerializeField] private string observeYarnNode;
+    // 라운드별 관찰 대사 노드. 인덱스가 라운드 번호와 대응한다 (0~3).
+    [SerializeField] private string[] observeYarnNodes;
 
     // 자동 시퀀서가 Bind를 기다리는 중인지 여부.
     // Yarn onDialogueComplete는 관찰 이외의 다른 대사 완료에도 호출될 수 있으므로
     // "이번 완료가 Observe 완료인가"를 구분할 플래그가 필요하다.
     private bool waitingForObserveComplete;
 
+    private void Start()
+    {
+        BeginEncounter();
+    }
+
     private void OnEnable()
     {
         if (dialogueRunner != null)
-        {
             dialogueRunner.onDialogueComplete.AddListener(HandleDialogueComplete);
-        }
+        if (encounterController != null)
+            encounterController.OnRoundStarted += Observe;
     }
 
     private void OnDisable()
     {
         if (dialogueRunner != null)
-        {
             dialogueRunner.onDialogueComplete.RemoveListener(HandleDialogueComplete);
-        }
+        if (encounterController != null)
+            encounterController.OnRoundStarted -= Observe;
     }
 
     // 엔카운터 시작 트리거. 외부(트리거 존, 스테이지 매니저 등)에서 호출한다.
@@ -52,10 +57,14 @@ public class SisterGimmickController : MonoBehaviour
             encounterController.TriggerObserve();
         }
 
-        if (dialogueRunner != null && !string.IsNullOrEmpty(observeYarnNode))
+        int round = encounterController != null ? encounterController.CurrentRound : 0;
+        string yarnNode = (observeYarnNodes != null && round < observeYarnNodes.Length)
+            ? observeYarnNodes[round] : null;
+
+        if (dialogueRunner != null && !string.IsNullOrEmpty(yarnNode))
         {
             waitingForObserveComplete = true;
-            dialogueRunner.StartDialogue(observeYarnNode);
+            dialogueRunner.StartDialogue(yarnNode);
         }
         else
         {

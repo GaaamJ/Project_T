@@ -15,6 +15,7 @@ public class Node : MonoBehaviour, IDelayInteractable
     public bool IsSelected { get; private set; }
 
     private SpriteRenderer sR;
+    private NodeState currentState;
     private NodeManager myManager; // 싱글톤 대신 직접 참조 (별빛 #5)
 
     // 자매 기믹 컨트롤러 참조. myManager와 동시에 존재할 수 있으며 서로 다른 시나리오에서 쓰인다.
@@ -40,8 +41,8 @@ public class Node : MonoBehaviour, IDelayInteractable
 
     public void Interact()
     {
-        // Null guard: 노드가 어느 시스템에도 등록되지 않은 채로 상호작용되면 조용히 무시한다.
-        // (예: 씬 배치 실수, 라운드 리셋 중 순간적 상태)
+        // Connected 상태인 노드는 이미 이전 라운드에서 연결된 것이므로 상호작용을 무시한다.
+        if (currentState == NodeState.Connected) return;
         myController?.TryConnect(this);
         myManager?.TryRegisterNode(this);
     }
@@ -67,6 +68,9 @@ public class Node : MonoBehaviour, IDelayInteractable
     // 스프라이트 원본을 그대로 두면서 "관찰 전/후" 대비를 만든다.
     public void SetState(NodeState newState)
     {
+        currentState = newState;
+        // Awake 실행 순서가 보장되지 않아 sR이 null일 수 있음 (StarlightEncounterController.Awake가 먼저 호출되는 경우)
+        if (sR == null) sR = GetComponent<SpriteRenderer>();
         Color c = sR.color;
         c.a = newState == NodeState.Dim ? 0.3f : 1.0f;
         sR.color = c;
