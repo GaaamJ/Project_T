@@ -11,10 +11,14 @@
             "id": "0330c5e329e5c151",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "그래프 뷰"
+              "type": "markdown",
+              "state": {
+                "file": "백로그/통합-백로그.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "통합-백로그"
             }
           }
         ]
@@ -183,6 +187,7 @@
   },
   "active": "0330c5e329e5c151",
   "lastOpenFiles": [
+    "백로그/통합-백로그.md.tmp.23316.ec5cdb86c6e4",
     "로드맵/로드맵-마스터.md",
     "구현완료/별빛/별빛-6.md",
     "구현완료/스테이지/스테이지-2.md",
