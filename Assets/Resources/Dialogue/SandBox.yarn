@@ -166,3 +166,11 @@ title: AskForHelp
 Thea: 다시 봐 볼게요.
 Thea: 음... 4에요.
 ===
+
+title: Starlight6Test
+---
+<<set $theaEmotion = "Speaking">>
+<<ChangeImage SpeakerImage Thea {$theaEmotion}>>
+<<SetAlpha SpeakerImage 1>>
+Thea: 왼쪽으로 쭉 이어 나가죠!
+===
