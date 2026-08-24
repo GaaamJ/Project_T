@@ -1,7 +1,7 @@
 using UnityEngine;
 using Yarn.Unity;
 
-// HR286 자매 기믹의 대사/시퀀스 흐름을 담당한다.
+// Thread 자매 기믹의 대사/시퀀스 흐름을 담당한다.
 // 라운드 판정·타이머 등 게임 로직은 StarlightEncounterController가 처리하고,
 // 여기서는 "언제 Observe/Bind를 호출할지"만 결정한다.
 // 자동 시퀀서: BeginEncounter() → Observe() 대사 시작 → 대사 완료 → Bind() 자동 호출.

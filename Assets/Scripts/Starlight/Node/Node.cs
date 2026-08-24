@@ -3,7 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class Node : MonoBehaviour, IDelayInteractable
 {
-    // 자매 기믹(HR286)에서 노드의 시각 상태를 3단계로 구분한다.
+    // 자매 기믹(Thread)에서 노드의 시각 상태를 3단계로 구분한다.
     // Dim: Observe 이전 또는 라운드 리셋 시 (alpha 0.3)
     // Highlighted: Bind 이후 정답 노드가 강조되는 상태 (alpha 1.0)
     // Connected: 정답 노드가 앵커와 연결된 이후 상태 (alpha 1.0)

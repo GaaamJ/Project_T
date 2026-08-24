@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// HR286 자매 기믹의 라운드 진행/판정을 담당하는 컨트롤러.
+// Thread 자매 기믹의 라운드 진행/판정을 담당하는 컨트롤러.
 // Yarn 대사/자매 AI 흐름은 SisterGimmickController가 담당하고,
 // 순수 게임 로직(노드 상태, 라운드 전환, 타이머, 라인)은 이 스크립트가 담당한다.
 public class StarlightEncounterController : MonoBehaviour
