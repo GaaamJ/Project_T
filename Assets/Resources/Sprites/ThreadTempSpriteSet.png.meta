@@ -146,7 +146,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Wall
+      name: Wall01
       rect:
         serializedVersion: 2
         x: 0
@@ -418,7 +418,7 @@ TextureImporter:
         width: 16
         height: 16
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -427,6 +427,28 @@ TextureImporter:
       bones: []
       spriteID: fdc0879443af79c4a8908a8fe9abb3ea
       internalID: 1403947235
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Wall02
+      rect:
+        serializedVersion: 2
+        x: 112
+        y: 80
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c50829f8530bd53499870a69152538d9
+      internalID: -996698499
       vertices: []
       indices: 
       edges: []
@@ -458,7 +480,8 @@ TextureImporter:
       Player: 6095832930551944252
       Red_Yarn: -9210131175371532348
       Umia: -5187269704490865490
-      Wall: -6954361104842077747
+      Wall01: -6954361104842077747
+      Wall02: -996698499
       Yellow_Yarn: -9109993627501302940
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
