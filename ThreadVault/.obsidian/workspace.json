@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "시스템/UI.md",
+                "file": "시스템/플레이어.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "UI"
+              "title": "플레이어"
             }
           }
         ]
@@ -188,10 +188,10 @@
   "active": "0330c5e329e5c151",
   "lastOpenFiles": [
     "시스템/좌표.md",
-    "시스템/우미아.md",
     "시스템/스테이지.md",
-    "시스템/실-버프.md",
     "시스템/UI.md",
+    "시스템/우미아.md",
+    "시스템/실-버프.md",
     "시스템/플레이어.md",
     "게임-흐름.md",
     "개요.md",
