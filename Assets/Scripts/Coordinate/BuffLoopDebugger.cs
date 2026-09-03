@@ -40,8 +40,7 @@ namespace ProjectT.Coordinate
             else if (kb.digit2Key.wasPressedThisFrame) playerHolder.Acquire(ThreadType.Blue);
             else if (kb.digit3Key.wasPressedThisFrame) playerHolder.Acquire(ThreadType.Gold);
 
-            // Player 반납 / 바인딩
-            if (kb.qKey.wasPressedThisFrame) playerHolder.Consume();
+            // Player 바인딩 (= 반납)
             if (kb.bKey.wasPressedThisFrame)
             {
                 bool result = coordinate.TryBind(playerHolder);
@@ -53,8 +52,7 @@ namespace ProjectT.Coordinate
             else if (kb.digit5Key.wasPressedThisFrame) umiaHolder.Acquire(ThreadType.Blue);
             else if (kb.digit6Key.wasPressedThisFrame) umiaHolder.Acquire(ThreadType.Gold);
 
-            // Umia 반납 / 바인딩
-            if (kb.eKey.wasPressedThisFrame) umiaHolder.Consume();
+            // Umia 바인딩 (= 반납)
             if (kb.nKey.wasPressedThisFrame)
             {
                 bool result = coordinate.TryBind(umiaHolder);
@@ -84,7 +82,7 @@ namespace ProjectT.Coordinate
                 $"HasBuff: {playerHolder.HasBuff,-20} HasBuff: {umiaHolder.HasBuff}\n" +
                 $"Type:    {playerType,-20} Type:    {umiaType}\n" +
                 $"Time:    {playerTime,-20} Time:    {umiaTime}\n" +
-                "1/2/3: 수급  Q: 반납  B: 바인딩   4/5/6: 수급  E: 반납  N: 바인딩\n" +
+                "1/2/3: 수급  B: 바인딩(반납)   4/5/6: 수급  N: 바인딩(반납)\n" +
                 "\n" +
                 "[Coordinate]\n" +
                 $"IsActive: {coordActive}\n" +
