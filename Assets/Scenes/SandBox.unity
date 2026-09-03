@@ -15402,7 +15402,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ProjectT.Thread::ProjectT.Thread.ThreadSpawnManager
   yarnPrefab: {fileID: 3794117900889514180, guid: c1dbaa1966b9363418a1d2c74766e6e4, type: 3}
-  buffHolder: {fileID: 1455187642}
+  buffHolders:
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!4 &987085801
 Transform:
   m_ObjectHideFlags: 0
@@ -25214,6 +25216,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1559354868}
   - component: {fileID: 1559354867}
+  - component: {fileID: 1559354869}
   m_Layer: 0
   m_Name: Umia
   m_TagString: Untagged
@@ -25295,6 +25298,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1559354869
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1559354866}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c965bd6e30b05c4eb3a00cf1c151020, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ProjectT.Thread::ProjectT.Thread.ThreadBuffHolder
+  buffDuration: 20
 --- !u!1 &1613013330
 GameObject:
   m_ObjectHideFlags: 0

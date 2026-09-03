@@ -7,8 +7,9 @@ namespace ProjectT.Thread
     {
         [SerializeField] Yarn yarnPrefab;
         // 버프 해제(소모/만료/교체) 이벤트를 구독해 해당 타입의 실을 즉시 재스폰하기 위해 필요.
-        // 인스펙터에서 씬의 ThreadBuffHolder를 직접 연결한다 — 씬에 1개뿐이라 자동 탐색보다 명시적 참조가 안전.
-        [SerializeField] ThreadBuffHolder buffHolder;
+        // Player·Umia 등 여러 캐릭터가 각자 ThreadBuffHolder를 보유하므로 배열로 관리한다.
+        // 인스펙터에서 씬의 홀더들을 명시적으로 연결한다 — 자동 탐색보다 안전.
+        [SerializeField] ThreadBuffHolder[] buffHolders;
 
         YarnSpawnPoint[] spawnPoints;
         // 각 타입별로 활성 인스턴스가 최대 1개라는 규칙을 강제하기 위해 dict로 관리.
@@ -23,22 +24,32 @@ namespace ProjectT.Thread
 
             // 버프가 해제되는 세 가지 경로(소모/만료/교체) 모두 동일하게 "그 타입을 다시 스폰"으로 이어짐.
             // 매니저가 매 프레임 상태를 폴링하지 않고 이벤트 기반으로 리스폰하기 위해 구독.
-            if (buffHolder != null)
+            // 여러 홀더 중 어느 하나에서 버프가 해제되어도 같은 SpawnThread 콜백이 호출됨 —
+            // SpawnThread 내부 가드에서 "다른 홀더가 그 타입을 들고 있으면 스폰 보류" 처리.
+            if (buffHolders != null)
             {
-                buffHolder.OnBuffConsumed += SpawnThread;
-                buffHolder.OnBuffExpired  += SpawnThread;
-                buffHolder.OnBuffReplaced += SpawnThread;
+                foreach (var holder in buffHolders)
+                {
+                    if (holder == null) continue;
+                    holder.OnBuffConsumed += SpawnThread;
+                    holder.OnBuffExpired  += SpawnThread;
+                    holder.OnBuffReplaced += SpawnThread;
+                }
             }
         }
 
         void OnDestroy()
         {
-            // 매니저가 파괴되어도 buffHolder는 씬에 살아있을 수 있으므로 이벤트 누수/댕글링 콜백 방지.
-            if (buffHolder != null)
+            // 매니저가 파괴되어도 buffHolder들은 씬에 살아있을 수 있으므로 이벤트 누수/댕글링 콜백 방지.
+            if (buffHolders != null)
             {
-                buffHolder.OnBuffConsumed -= SpawnThread;
-                buffHolder.OnBuffExpired  -= SpawnThread;
-                buffHolder.OnBuffReplaced -= SpawnThread;
+                foreach (var holder in buffHolders)
+                {
+                    if (holder == null) continue;
+                    holder.OnBuffConsumed -= SpawnThread;
+                    holder.OnBuffExpired  -= SpawnThread;
+                    holder.OnBuffReplaced -= SpawnThread;
+                }
             }
         }
 
@@ -58,12 +69,25 @@ namespace ProjectT.Thread
             SpawnThread(type);
         }
 
+        // 여러 홀더 중 하나라도 해당 타입 버프를 보유 중인지 확인.
+        // 스폰 보류 판단은 "모든 홀더 합쳐서 아무도 안 들고 있을 때만 스폰"이 되어야 하므로 OR 검사.
+        bool AnyHolderHasBuff(ThreadType type)
+        {
+            if (buffHolders == null) return false;
+            foreach (var holder in buffHolders)
+            {
+                if (holder == null) continue;
+                if (holder.HasBuff && holder.CurrentType == type) return true;
+            }
+            return false;
+        }
+
         void SpawnThread(ThreadType type)
         {
             if (activeThreads.ContainsKey(type)) return;
-            // 플레이어가 해당 타입 버프를 보유 중이면 그 실은 존재하지 않는 상태가 정상 —
-            // 버프 해제(소모/만료/교체) 이벤트 시점에 다시 스폰되므로 여기서는 건너뛴다.
-            if (buffHolder != null && buffHolder.HasBuff && buffHolder.CurrentType == type) return;
+            // 어느 홀더든 해당 타입 버프를 보유 중이면 그 실은 존재하지 않는 상태가 정상 —
+            // 그 홀더의 버프 해제(소모/만료/교체) 이벤트 시점에 다시 스폰되므로 여기서는 건너뛴다.
+            if (AnyHolderHasBuff(type)) return;
 
             YarnSpawnPoint point = GetFreeSpawnPoint();
             if (point == null)

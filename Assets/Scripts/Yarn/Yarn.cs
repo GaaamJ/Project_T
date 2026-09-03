@@ -31,8 +31,8 @@ namespace ProjectT.Thread
         }
 
         // 옵션 A: IBuffHolder 인터페이스를 만들지 않고 ThreadBuffHolder를 직접 받는다.
-        // 실을 얻을 수 있는 대상이 지금은 플레이어(ThreadBuffHolder)뿐이라 굳이 추상화하지 않음.
-        // 나중에 다른 타입이 실을 획득해야 하는 상황이 생기면 그때 인터페이스로 승격.
+        // Player·Umia 모두 ThreadBuffHolder를 직접 사용하므로 추상화 불필요.
+        // 실을 얻는 대상이 ThreadBuffHolder가 아닌 타입으로 확장될 때 인터페이스로 승격.
         public void TakeHit(ThreadBuffHolder attacker)
         {
             attacker?.Acquire(type);
