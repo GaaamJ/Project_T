@@ -10,7 +10,7 @@ namespace ProjectT.Player
     //   - 다른(참조되지 않은) Coordinate 가 이탈하는 것은 무시 — "이전에 밀린" 대상까지 되살릴 필요가 없기 때문.
     // PlayerInteract 는 Interact 입력이 들어온 시점에만 이 참조를 읽어 상호작용을 시도한다.
     [RequireComponent(typeof(Collider2D))]
-    public class CoordinateDetectZone : MonoBehaviour
+    public class DetectZone : MonoBehaviour
     {
         // Interact 입력 시점에 PlayerInteract 가 참조하는 "현재 감지된 Coordinate".
         // 없을 때 null. 외부에서는 읽기 전용.

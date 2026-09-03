@@ -11,7 +11,7 @@ namespace ProjectT.Player
     public class PlayerInteract : MonoBehaviour
     {
         [Tooltip("범위 감지 담당 (플레이어의 자식 오브젝트). 인스펙터에서 직접 연결.")]
-        [SerializeField] CoordinateDetectZone detectZone;
+        [SerializeField] DetectZone detectZone;
 
         [Tooltip("소모할 실 버프 홀더. 인스펙터에서 직접 연결.")]
         [SerializeField] ThreadBuffHolder buffHolder;
