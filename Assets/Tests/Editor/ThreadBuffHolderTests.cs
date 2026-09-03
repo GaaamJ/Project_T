@@ -80,6 +80,76 @@ namespace ProjectT.Tests.Editor
         }
 
         [Test]
+        public void Consume_CallbackObservesResetState()
+        {
+            // "상태 먼저 리셋 → 이벤트 발행" 순서 보장 —
+            // 콜백에서 HasBuff/RemainingTime을 조회하면 이미 리셋된 값이 보여야 한다.
+            var holder = CreateHolder();
+            holder.Acquire(ThreadType.Blue);
+
+            bool hasBuffInCallback = true;
+            float remainingInCallback = -1f;
+            holder.OnBuffConsumed += _ =>
+            {
+                hasBuffInCallback = holder.HasBuff;
+                remainingInCallback = holder.RemainingTime;
+            };
+
+            holder.Consume();
+
+            Assert.IsFalse(hasBuffInCallback,
+                "OnBuffConsumed 콜백 시점에는 HasBuff가 이미 false여야 한다.");
+            Assert.AreEqual(0f, remainingInCallback, 0.0001f,
+                "OnBuffConsumed 콜백 시점에는 RemainingTime이 이미 0이어야 한다.");
+        }
+
+        [Test]
+        public void Tick_ExpiredCallbackObservesResetState()
+        {
+            // Tick 만료 경로도 동일하게 "상태 먼저 리셋 → 이벤트 발행" 순서여야 한다.
+            var holder = CreateHolder();
+            holder.Acquire(ThreadType.Gold);
+
+            bool hasBuffInCallback = true;
+            float remainingInCallback = -1f;
+            holder.OnBuffExpired += _ =>
+            {
+                hasBuffInCallback = holder.HasBuff;
+                remainingInCallback = holder.RemainingTime;
+            };
+
+            holder.Tick(999f);
+
+            Assert.IsFalse(hasBuffInCallback,
+                "OnBuffExpired 콜백 시점에는 HasBuff가 이미 false여야 한다.");
+            Assert.AreEqual(0f, remainingInCallback, 0.0001f,
+                "OnBuffExpired 콜백 시점에는 RemainingTime이 이미 0이어야 한다.");
+        }
+
+        [Test]
+        public void Consume_CallbackCanReacquireImmediately()
+        {
+            // 콜백에서 즉시 Acquire를 호출해도 재진입성 문제가 없어야 한다 —
+            // 이 시나리오가 사용자가 지적한 원래 버그였다.
+            var holder = CreateHolder();
+            holder.Acquire(ThreadType.Red);
+
+            holder.OnBuffConsumed += _ =>
+            {
+                // 즉시 다른 타입 재획득 — 이전 순서(이벤트 먼저)라면 이 호출 후
+                // RemainingTime=0f 대입이 뒤늦게 실행되어 새 버프가 즉시 클리어됐음.
+                holder.Acquire(ThreadType.Blue);
+            };
+
+            holder.Consume();
+
+            Assert.IsTrue(holder.HasBuff,
+                "콜백에서 Acquire 재호출 시 새 버프가 유지되어야 한다.");
+            Assert.AreEqual(ThreadType.Blue, holder.CurrentType);
+            Assert.AreEqual(20f, holder.RemainingTime, 0.0001f);
+        }
+
+        [Test]
         public void Acquire_WhenReplacingExistingBuff_DoesNotFireAnyEvent()
         {
             var holder = CreateHolder();

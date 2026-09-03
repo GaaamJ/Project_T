@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 3889267948009562585}
   - component: {fileID: 8536672151756412851}
   - component: {fileID: 4596660942714180108}
+  - component: {fileID: 5894612093461220258}
   m_Layer: 0
   m_Name: Inactive_Cube
   m_TagString: Untagged
@@ -107,3 +108,39 @@ MonoBehaviour:
   redSprite: {fileID: 5679324896873018518, guid: 09366b41bf8af3842a589440aef2995d, type: 3}
   blueSprite: {fileID: 2481740365871512251, guid: 09366b41bf8af3842a589440aef2995d, type: 3}
   goldSprite: {fileID: 8477032680806120242, guid: 09366b41bf8af3842a589440aef2995d, type: 3}
+--- !u!58 &5894612093461220258
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6215444411338888590}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_Radius: 0.5
