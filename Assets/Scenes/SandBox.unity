@@ -24862,6 +24862,7 @@ GameObject:
   - component: {fileID: 1455187641}
   - component: {fileID: 1455187640}
   - component: {fileID: 1455187642}
+  - component: {fileID: 1455187643}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -25030,6 +25031,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ProjectT.Thread::ProjectT.Thread.ThreadBuffHolder
   buffDuration: 20
+--- !u!114 &1455187643
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1455187637}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f911acd23bdb3d49934e2b2ed0b6b02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectT.Player.PlayerController
+  speed: 6
+  attackRange: 3
+  attackMask:
+    serializedVersion: 2
+    m_Bits: 1
+  interactRange: 1.5
+  interactMask:
+    serializedVersion: 2
+    m_Bits: 1
 --- !u!1001 &1475210563
 PrefabInstance:
   m_ObjectHideFlags: 0
