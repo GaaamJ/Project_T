@@ -15383,7 +15383,7 @@ GameObject:
   - component: {fileID: 987085801}
   - component: {fileID: 987085800}
   m_Layer: 0
-  m_Name: ThreadSpawnManager
+  m_Name: YarnSpawnManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -26387,11 +26387,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 1772077104}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9435e975cce599d42bcfd12a14118bc9, type: 3}
+  m_Script: {fileID: 11500000, guid: b4b6521439ac8b848ae3be447989dafa, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ProjectT.Coordinate.CoordinateDebugger
-  holder: {fileID: 1455187642}
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectT.Coordinate.BuffLoopDebugger
+  playerHolder: {fileID: 1455187642}
+  umiaHolder: {fileID: 1559354869}
   coordinate: {fileID: 359346557}
+  spawnManager: {fileID: 987085800}
 --- !u!1 &1820281338
 GameObject:
   m_ObjectHideFlags: 0
