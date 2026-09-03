@@ -6,12 +6,10 @@ using ProjectT.Coordinate;
 namespace ProjectT.Player
 {
     // 이슈 #15: 플레이어의 이동/공격/상호작용을 하나의 컴포넌트로 묶는다.
-    // 아직 캐릭터 컨트롤러 구조가 확정되지 않았기 때문에, 별도 상태 머신이나 InputAction 애셋 없이
-    // 최소한의 조작 루프만 검증할 수 있는 "테스트용" 조작기로 유지한다.
-    //
-    // 이동: Rigidbody2D.linearVelocity 로 처리한다. Transform 이동은 Collider와의 상호작용을 깨뜨리므로 사용하지 않음.
-    // 공격: 커서 방향 Raycast → Yarn.TakeHit(buffHolder). 실은 Trigger 콜라이더일 수 있으므로 useTriggers=true.
-    // 상호작용: 주변 OverlapCircle로 Coordinate 검출 → TryBind(buffHolder). Coordinate 콜라이더도 Trigger 가능성 있음.
+    // 입력은 InputSystem_Actions 자동 생성 클래스를 통해 InputAction 애셋과 연결한다.
+    // 이동: Rigidbody2D.linearVelocity 로 처리 (Transform 이동은 Collider 관통 문제).
+    // 공격: Attack.performed 콜백 → 커서 방향 Raycast → Yarn.TakeHit. useTriggers=true.
+    // 상호작용: Interact.performed 콜백 (Hold 완료 시점) → OverlapCircle → Coordinate.TryBind.
     [RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(ThreadBuffHolder))]
     public class PlayerController : MonoBehaviour
@@ -33,6 +31,7 @@ namespace ProjectT.Player
 
         Rigidbody2D rb;
         ThreadBuffHolder buffHolder;
+        InputSystem_Actions actions;
 
         // Raycast/Overlap 결과 버퍼 — 매 프레임 new 를 피해 GC 압박을 낮추기 위해 재사용한다.
         readonly RaycastHit2D[] attackHits = new RaycastHit2D[8];
@@ -47,6 +46,7 @@ namespace ProjectT.Player
         {
             rb = GetComponent<Rigidbody2D>();
             buffHolder = GetComponent<ThreadBuffHolder>();
+            actions = new InputSystem_Actions();
 
             attackFilter = new ContactFilter2D();
             attackFilter.SetLayerMask(attackMask);
@@ -60,72 +60,59 @@ namespace ProjectT.Player
             interactFilter.useLayerMask = true;
         }
 
-        void Update()
+        void OnEnable()
         {
-            // 이 프로젝트는 새 InputSystem 패키지를 사용한다 (BuffLoopDebugger 참고).
-            // Update 에서 입력을 받고, 이동은 FixedUpdate 에서 처리 → 물리 스텝과 동기화.
-            HandleAttackInput();
-            HandleInteractInput();
+            actions.Player.Enable();
+            actions.Player.Attack.performed += OnAttackPerformed;
+            actions.Player.Interact.performed += OnInteractPerformed;
+        }
+
+        void OnDisable()
+        {
+            actions.Player.Attack.performed -= OnAttackPerformed;
+            actions.Player.Interact.performed -= OnInteractPerformed;
+            actions.Player.Disable();
+        }
+
+        void OnDestroy()
+        {
+            // InputActionAsset 은 IDisposable — 명시적으로 해제해야 도메인 리로드/씬 전환 시 leak 방지.
+            actions?.Dispose();
         }
 
         void FixedUpdate()
         {
-            // 이동은 물리 스텝 주기에서 linearVelocity 로 처리해야 Collider 관통을 방지할 수 있다.
-            HandleMovement();
-        }
-
-        void HandleMovement()
-        {
-            var kb = Keyboard.current;
-            if (kb == null)
-            {
-                rb.linearVelocity = Vector2.zero;
-                return;
-            }
-
-            // WASD를 8방향 정규화 벡터로 합성. 대각선이 √2 배 빨라지는 것을 방지하기 위해 normalize.
-            Vector2 dir = Vector2.zero;
-            if (kb.wKey.isPressed) dir.y += 1f;
-            if (kb.sKey.isPressed) dir.y -= 1f;
-            if (kb.aKey.isPressed) dir.x -= 1f;
-            if (kb.dKey.isPressed) dir.x += 1f;
-
+            // Move는 Value 액션이라 매 프레임 폴링이 자연스럽다. 이동은 물리 스텝에서 처리해야 Collider 관통 방지.
+            Vector2 dir = actions.Player.Move.ReadValue<Vector2>();
+            // Move 액션의 2DVector composite는 이미 정규화된 값을 반환하지만, 방어적으로 클램프.
             if (dir.sqrMagnitude > 1f) dir.Normalize();
-
             rb.linearVelocity = dir * speed;
         }
 
-        void HandleAttackInput()
+        void OnAttackPerformed(InputAction.CallbackContext ctx)
         {
-            var mouse = Mouse.current;
-            if (mouse == null) return;
-            if (!mouse.leftButton.wasPressedThisFrame) return;
-
             var cam = Camera.main;
-            // Camera.main 은 MainCamera 태그가 붙은 카메라를 반환한다. 씬에 없다면 공격 처리 자체가 무의미.
             if (cam == null) return;
 
-            // 마우스 화면 좌표를 월드 좌표로 변환. 카메라는 z=-10 부근이므로 XY 평면 기준으로 방향만 뽑아낸다.
+            // 마우스 위치는 Attack 액션이 아니라 별도 조회 — 커서 위치 자체는 어떤 액션에도 바인딩되어 있지 않음.
+            var mouse = Mouse.current;
+            if (mouse == null) return;
+
             Vector2 screenPos = mouse.position.ReadValue();
             Vector3 worldPos = cam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, -cam.transform.position.z));
 
             Vector2 origin = transform.position;
             Vector2 dir = ((Vector2)worldPos - origin);
-            // 커서가 플레이어와 완전히 겹치면 방향이 0 이 되어 Raycast 결과가 예측 불가 → 조용히 skip.
             if (dir.sqrMagnitude < 0.0001f) return;
             dir.Normalize();
 
             int hitCount = Physics2D.Raycast(origin, dir, attackFilter, attackHits, attackRange);
-            // 여러 개 맞으면 가장 가까운 대상 하나만 처리. Raycast 결과는 이미 거리 순 정렬(Unity 문서 기준).
             for (int i = 0; i < hitCount; i++)
             {
                 var hit = attackHits[i];
                 if (hit.collider == null) continue;
 
-                // Yarn 은 자기 자신 컴포넌트로 TakeHit 를 처리한다.
-                // GetComponentInParent 를 쓰는 이유: 콜라이더가 Yarn 루트가 아닌 자식 오브젝트에 붙어 있는 경우도 커버.
-                // 풀네임(ProjectT.Thread.Yarn) 사용: Yarn Spinner 패키지가 최상위 'Yarn' 네임스페이스를 점유해
-                // 짧은 이름을 쓰면 CS0118 (namespace used like a type) 이 발생하기 때문.
+                // 풀네임(ProjectT.Thread.Yarn): Yarn Spinner 패키지가 최상위 'Yarn' 네임스페이스를 점유해 CS0118 회피.
                 var yarn = hit.collider.GetComponentInParent<ProjectT.Thread.Yarn>();
                 if (yarn != null)
                 {
@@ -135,16 +122,11 @@ namespace ProjectT.Player
             }
         }
 
-        void HandleInteractInput()
+        void OnInteractPerformed(InputAction.CallbackContext ctx)
         {
-            var kb = Keyboard.current;
-            if (kb == null) return;
-            if (!kb.eKey.wasPressedThisFrame) return;
-
             Vector2 origin = transform.position;
             int hitCount = Physics2D.OverlapCircle(origin, interactRange, interactFilter, interactHits);
 
-            // 감지된 첫 Coordinate 에만 바인딩 시도. 여러 개가 겹치는 케이스는 현 스코프 밖.
             for (int i = 0; i < hitCount; i++)
             {
                 var col = interactHits[i];
@@ -154,7 +136,6 @@ namespace ProjectT.Player
                 if (coordinate == null) continue;
 
                 bool result = coordinate.TryBind(buffHolder);
-                // 상호작용 결과는 이슈 요구대로 콘솔에 남긴다 — 아직 UI 피드백이 없기 때문.
                 Debug.Log($"[PlayerController] Interact TryBind: {result}");
                 return;
             }
@@ -162,7 +143,6 @@ namespace ProjectT.Player
 
         void OnDrawGizmosSelected()
         {
-            // 인스펙터에서 선택했을 때 공격/상호작용 범위를 시각화해 튜닝을 돕는다.
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(transform.position, interactRange);
         }
