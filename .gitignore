@@ -77,3 +77,7 @@ crashlytics-build.properties
 # Obsidian auto-generated state
 ThreadVault/.obsidian/workspace.json
 ThreadVault/.obsidian/workspace-mobile.json
+
+# MCP 테스트용 스크린샷
+/[Aa]ssets/[Ss]creenshots/
+/[Aa]ssets/[Ss]creenshots.meta
