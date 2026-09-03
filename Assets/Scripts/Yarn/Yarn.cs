@@ -40,29 +40,5 @@ namespace ProjectT.Thread
             spawnManager?.NotifyDestroyed(type);
             Destroy(gameObject);
         }
-
-        // 실제 공격 시스템이 붙기 전까지 스폰/리스폰 로직을 눈으로 확인하기 위한 테스트용.
-        // 버프 없이 파괴만 트리거해서 리스폰이 정상 도는지 검증한다.
-        [ContextMenu("Test Destroy (No Buff)")]
-        void TestDestroy()
-        {
-            spawnPoint?.Free();
-            spawnManager?.NotifyDestroyed(type);
-            Destroy(gameObject);
-        }
-
-        // 씬에서 ThreadBuffHolder를 자동으로 찾아 TakeHit을 트리거한다.
-        // Yarn → 버프 획득 → 리스폰 전체 경로를 debugger 없이 검증할 때 사용.
-        [ContextMenu("Test Hit (With Buff)")]
-        void TestHit()
-        {
-            var holder = FindFirstObjectByType<ThreadBuffHolder>();
-            if (holder == null)
-            {
-                Debug.LogWarning("[Yarn] ThreadBuffHolder를 씬에서 찾을 수 없습니다.");
-                return;
-            }
-            TakeHit(holder);
-        }
     }
 }

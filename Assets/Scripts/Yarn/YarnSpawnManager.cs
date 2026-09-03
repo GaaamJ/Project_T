@@ -115,8 +115,8 @@ namespace ProjectT.Thread
             return free[Random.Range(0, free.Count)];
         }
 
-        // 스테이지 진입 트리거(도어/텔레포터)가 붙기 전까지 수동 검증용.
-        [ContextMenu("Test: Start Stage")]
-        void TestStartStage() => StartStage();
+        // 디버거/HUD가 각 타입의 활성 여부를 조회하기 위한 read-only 프로브 —
+        // 내부 dict를 직접 노출하지 않고 boolean만 반환해 캡슐화 유지.
+        public bool IsTypeActive(ThreadType type) => activeThreads.ContainsKey(type);
     }
 }
