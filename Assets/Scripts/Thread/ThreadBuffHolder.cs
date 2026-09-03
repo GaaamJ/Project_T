@@ -27,10 +27,16 @@ namespace ProjectT.Thread
 
         public void Acquire(ThreadType type)
         {
-            // 이미 다른 타입의 버프를 보유 중이라면 이전 타입이 해방된 것으로 취급 —
-            // 스폰 매니저가 이전 타입을 다시 스폰해야 하기 때문. (같은 타입 재획득은 단순 시간 갱신이므로 이벤트 없음)
             if (HasBuff && CurrentType != type)
-                OnBuffReplaced?.Invoke(CurrentType);
+            {
+                // 상태를 먼저 커밋한 뒤 이벤트 발행 — 콜백 시점에 AnyHolderHasBuff(이전 타입)가
+                // false가 되어야 YarnSpawnManager가 이전 타입 실을 즉시 재스폰할 수 있음.
+                var replaced = CurrentType;
+                CurrentType = type;
+                RemainingTime = buffDuration;
+                OnBuffReplaced?.Invoke(replaced);
+                return;
+            }
 
             CurrentType = type;
             RemainingTime = buffDuration;
