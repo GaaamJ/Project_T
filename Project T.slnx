@@ -1,3 +1,5 @@
 ﻿<Solution>
   <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="ProjectT.Thread.csproj" />
+  <Project Path="ProjectT.Tests.Editor.csproj" />
 </Solution>

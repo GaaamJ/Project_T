@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using ProjectT.Thread;
 
 namespace ProjectT.Coordinate
@@ -33,27 +34,34 @@ namespace ProjectT.Coordinate
                 enabled = false;
                 return;
             }
+
+            YarnSpawnManager spawnManager = FindFirstObjectByType<YarnSpawnManager>();
+            if (spawnManager != null)
+                spawnManager.StartStage();
         }
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Alpha1))
+            var kb = Keyboard.current;
+            if (kb == null) return;
+
+            if (kb.digit1Key.wasPressedThisFrame)
             {
                 holder.Acquire(ThreadType.Red);
                 Debug.Log("[CoordinateDebugger] Acquire(Red)");
             }
-            else if (Input.GetKeyDown(KeyCode.Alpha2))
+            else if (kb.digit2Key.wasPressedThisFrame)
             {
                 holder.Acquire(ThreadType.Blue);
                 Debug.Log("[CoordinateDebugger] Acquire(Blue)");
             }
-            else if (Input.GetKeyDown(KeyCode.Alpha3))
+            else if (kb.digit3Key.wasPressedThisFrame)
             {
                 holder.Acquire(ThreadType.Gold);
                 Debug.Log("[CoordinateDebugger] Acquire(Gold)");
             }
 
-            if (Input.GetKeyDown(KeyCode.B))
+            if (kb.bKey.wasPressedThisFrame)
             {
                 bool result = coordinate.TryBind(holder);
                 Debug.Log($"[CoordinateDebugger] TryBind result: {result}");

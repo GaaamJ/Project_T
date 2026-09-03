@@ -4,8 +4,10 @@ using UnityEngine;
 namespace ProjectT.Thread
 {
     // 플레이어에 붙어서 현재 보유 중인 실 버프의 종류와 남은 시간을 관리한다.
-    // 스폰 시스템은 OnBuffConsumed/OnBuffExpired 이벤트로 "버프 슬롯이 비었음"을 알 수 있다.
-    // 교체(Acquire 중 이미 보유 상태)는 소모도 만료도 아니므로 이벤트를 발행하지 않는다 — 기획 확정 사항.
+    // 스폰 시스템은 OnBuffConsumed/OnBuffExpired/OnBuffReplaced 이벤트로
+    // "이전 타입의 버프가 해제되었음"을 알 수 있다.
+    // 교체(Acquire 중 이미 다른 타입 보유)는 이전 타입의 실이 "해방"된 것으로 간주해
+    // OnBuffReplaced로 이전 타입을 알린다 — 이렇게 해야 스폰 매니저가 이전 타입을 다시 스폰할 수 있음.
     public class ThreadBuffHolder : MonoBehaviour
     {
         // 모든 실 타입에 공통 적용되는 지속시간. 개별 타입별 duration은 현재 스코프 외.
@@ -20,10 +22,16 @@ namespace ProjectT.Thread
         // 파라미터는 "방금 소모/만료된 실의 타입" — 구독자가 리셋 이전 값에 접근할 수 있게 한다.
         public event Action<ThreadType> OnBuffConsumed;
         public event Action<ThreadType> OnBuffExpired;
+        // 다른 타입의 버프로 교체될 때 이전 타입을 전달한다. 스폰 매니저가 이전 타입을 다시 스폰할 수 있게 함.
+        public event Action<ThreadType> OnBuffReplaced;
 
         public void Acquire(ThreadType type)
         {
-            // 교체 시에도 이전 이벤트 발행 없이 조용히 덮어쓴다.
+            // 이미 다른 타입의 버프를 보유 중이라면 이전 타입이 해방된 것으로 취급 —
+            // 스폰 매니저가 이전 타입을 다시 스폰해야 하기 때문. (같은 타입 재획득은 단순 시간 갱신이므로 이벤트 없음)
+            if (HasBuff && CurrentType != type)
+                OnBuffReplaced?.Invoke(CurrentType);
+
             CurrentType = type;
             RemainingTime = buffDuration;
         }

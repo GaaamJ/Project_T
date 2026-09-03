@@ -2,19 +2,22 @@ using UnityEngine;
 
 namespace ProjectT.Thread
 {
-    public class Thread : MonoBehaviour
+    // SpriteRenderer는 Initialize에서 타입별 스프라이트를 스왑하기 위해 반드시 필요.
+    // 프리팹에서 누락되지 않도록 RequireComponent로 강제한다.
+    [RequireComponent(typeof(SpriteRenderer))]
+    public class Yarn : MonoBehaviour
     {
         [SerializeField] Sprite redSprite;
         [SerializeField] Sprite blueSprite;
         [SerializeField] Sprite goldSprite;
 
         ThreadType type;
-        ThreadSpawnPoint spawnPoint;
-        ThreadSpawnManager spawnManager;
+        YarnSpawnPoint spawnPoint;
+        YarnSpawnManager spawnManager;
 
         // 프리팹 하나로 3색을 다 표현하기 위해 스폰 시점에 타입을 주입받아
         // 스프라이트를 스왑한다. 프리팹을 3개로 분리하면 관리 지점이 늘어나므로 통합.
-        public void Initialize(ThreadType threadType, ThreadSpawnPoint point, ThreadSpawnManager manager)
+        public void Initialize(ThreadType threadType, YarnSpawnPoint point, YarnSpawnManager manager)
         {
             type = threadType;
             spawnPoint = point;
@@ -46,6 +49,20 @@ namespace ProjectT.Thread
             spawnPoint?.Free();
             spawnManager?.NotifyDestroyed(type);
             Destroy(gameObject);
+        }
+
+        // 씬에서 ThreadBuffHolder를 자동으로 찾아 TakeHit을 트리거한다.
+        // Yarn → 버프 획득 → 리스폰 전체 경로를 debugger 없이 검증할 때 사용.
+        [ContextMenu("Test Hit (With Buff)")]
+        void TestHit()
+        {
+            var holder = FindFirstObjectByType<ThreadBuffHolder>();
+            if (holder == null)
+            {
+                Debug.LogWarning("[Yarn] ThreadBuffHolder를 씬에서 찾을 수 없습니다.");
+                return;
+            }
+            TakeHit(holder);
         }
     }
 }
