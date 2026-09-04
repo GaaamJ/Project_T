@@ -27,10 +27,16 @@ namespace ProjectT.Thread
 
         public void Acquire(ThreadType type)
         {
-            // 이미 다른 타입의 버프를 보유 중이라면 이전 타입이 해방된 것으로 취급 —
-            // 스폰 매니저가 이전 타입을 다시 스폰해야 하기 때문. (같은 타입 재획득은 단순 시간 갱신이므로 이벤트 없음)
             if (HasBuff && CurrentType != type)
-                OnBuffReplaced?.Invoke(CurrentType);
+            {
+                // 상태를 먼저 커밋한 뒤 이벤트 발행 — 콜백 시점에 AnyHolderHasBuff(이전 타입)가
+                // false가 되어야 YarnSpawnManager가 이전 타입 실을 즉시 재스폰할 수 있음.
+                var replaced = CurrentType;
+                CurrentType = type;
+                RemainingTime = buffDuration;
+                OnBuffReplaced?.Invoke(replaced);
+                return;
+            }
 
             CurrentType = type;
             RemainingTime = buffDuration;
@@ -41,10 +47,12 @@ namespace ProjectT.Thread
             // 없는 버프를 소모 요청하는 것은 no-op. 이벤트도 발행하지 않는다.
             if (!HasBuff) return;
 
-            // 이벤트를 먼저 발행해 구독자가 CurrentType을 조회할 수 있게 한 뒤 상태를 리셋한다.
+            // 상태를 먼저 리셋한 뒤 이벤트를 발행한다 — 구독자 콜백이
+            // 재진입성 있게 HasBuff/Acquire를 호출해도 안전하도록.
+            // 이전 타입은 파라미터로 전달하므로 구독자가 조회할 필요 없음.
             var consumed = CurrentType;
-            OnBuffConsumed?.Invoke(consumed);
             RemainingTime = 0f;
+            OnBuffConsumed?.Invoke(consumed);
         }
 
         private void Update()
@@ -64,10 +72,11 @@ namespace ProjectT.Thread
             RemainingTime -= deltaTime;
             if (RemainingTime <= 0f)
             {
-                // Consume과 마찬가지로 이벤트 발행 → 상태 리셋 순서.
+                // Consume과 마찬가지로 상태 리셋 → 이벤트 발행 순서.
+                // 구독자 콜백이 즉시 Acquire를 부를 수 있어 재진입성이 필요함.
                 var expired = CurrentType;
-                OnBuffExpired?.Invoke(expired);
                 RemainingTime = 0f;
+                OnBuffExpired?.Invoke(expired);
             }
         }
     }
