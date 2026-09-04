@@ -534,9 +534,12 @@ namespace ProjectT.NPC
             // rb.position이 A* 그리드 노드 중심과 어긋나면 IsAstarWalkable이 erode된 인접 노드를
             // 쿼리해 실제 통로를 막혔다고 오판한다. 가장 가까운 노드 중심으로 스냅해 방지.
             Vector2 pos = rb.position;
-            var snapNode = AstarPath.active?.GetNearest(pos, NNConstraint.None);
-            if (snapNode.node != null && snapNode.node.Walkable)
-                pos = (Vector2)(Vector3)snapNode.node.position;
+            if (AstarPath.active != null)
+            {
+                var snapNode = AstarPath.active.GetNearest(pos, NNConstraint.None);
+                if (snapNode.node != null && snapNode.node.Walkable)
+                    pos = (Vector2)(Vector3)snapNode.node.position;
+            }
 
             // "온 방향" = 이전 결정 지점 → 현재 위치 방향의 반대.
             Vector2 cameFrom = Vector2.zero;
