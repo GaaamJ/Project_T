@@ -25294,19 +25294,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9df507b454586694fa08a728d22e2e53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectT.NPC.UmiaBrain
-  wanderMin: {x: -10, y: -10}
-  wanderMax: {x: 10, y: 10}
-  wanderSpeed: 2
-  waypointTimeout: 3
+  speed: 6
   waypointArrivalDist: 0.3
-  detectRadius: 5
-  interactRange: 1.2
+  waypointTimeout: 3
+  wanderMin: {x: -85, y: 0}
+  wanderMax: {x: 85, y: 40}
+  visionRadius: 5
   wallMask:
     serializedVersion: 2
     m_Bits: 2048
-  approachSpeed: 3
-  playerTransform: {fileID: 1455187639}
+  interactRange: 1.2
   buffHolder: {fileID: 1559354869}
+  playerInteract: {fileID: 1455187644}
 --- !u!61 &1559354871
 BoxCollider2D:
   m_ObjectHideFlags: 0

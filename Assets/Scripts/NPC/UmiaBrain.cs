@@ -1,308 +1,306 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using ProjectT.Thread;
+// 네임스페이스와 클래스 이름이 동일(ProjectT.Coordinate.Coordinate)해 CS0118 회피를 위해 alias 사용.
+using Coord = ProjectT.Coordinate.Coordinate;
 
 namespace ProjectT.NPC
 {
-    // Umia NPC 행동 브레인.
-    // 상태 머신: Wander(배회) → Detect(플레이어 발견) → Approach(접근) → Interact(상호작용 시도) → Wander
-    //
-    // 물리: Dynamic Rigidbody2D + BoxCollider2D (플레이어와 동일 방식)
-    // 벽 감지: Physics2D.Linecast (Wall 레이어 마스크)
-    // 웨이포인트: 인스펙터에서 Rect(min/max)로 정의한 맵 경계 안에서 랜덤 좌표 선정
-    // 지식: 발견 즉시 JSON으로 persistentDataPath에 저장
+    // Umia AI. 상태: Explore(배회) → SeekYarn(실타래 수집) → SeekCoordinate(좌표 바인드).
+    // 맵 지식(스폰 위치·좌표 위치)은 시야 + 벽 Linecast로 발견하며 JSON으로 영구 저장.
     [RequireComponent(typeof(Rigidbody2D))]
     public class UmiaBrain : MonoBehaviour
     {
-        // ── 인스펙터 ─────────────────────────────────────────────────
-        [Header("Wander")]
-        [Tooltip("랜덤 웨이포인트를 뽑을 맵 경계 (월드 좌표 min/max)")]
-        [SerializeField] Vector2 wanderMin = new Vector2(-10f, -10f);
-        [SerializeField] Vector2 wanderMax = new Vector2(10f, 10f);
-        [SerializeField] float wanderSpeed = 2f;
-        [SerializeField] float waypointTimeout = 3f;      // 이 시간 안에 도달 못하면 재선정
-        [SerializeField] float waypointArrivalDist = 0.3f;
+        // ── 인스펙터 ─────────────────────────────────────────────────────
+        [Header("이동")]
+        [SerializeField] float speed = 6f;
+        [SerializeField] float waypointArrivalDist = 0.4f;
+        [SerializeField] float waypointTimeout = 3f;
+        [SerializeField] Vector2 wanderMin = new Vector2(-50f, 0f);
+        [SerializeField] Vector2 wanderMax = new Vector2(50f, 40f);
 
-        [Header("Detect")]
-        [Tooltip("플레이어를 인식하는 반경")]
-        [SerializeField] float detectRadius = 5f;
-        [Tooltip("상호작용을 시도하는 반경 (단일 필드)")]
-        [SerializeField] float interactRange = 1.2f;
-        [Tooltip("Wall 레이어 마스크 — 시야 차단 판정에 사용")]
+        [Header("시야")]
+        [SerializeField] float visionRadius = 5f;
         [SerializeField] LayerMask wallMask;
 
-        [Header("Approach")]
-        [SerializeField] float approachSpeed = 3f;
+        [Header("상호작용")]
+        [SerializeField] float interactRange = 1.2f;
 
-        [Header("References")]
-        [Tooltip("플레이어 Transform — 인스펙터에서 연결")]
-        [SerializeField] Transform playerTransform;
-        [Tooltip("Umia 자신의 ThreadBuffHolder")]
-        [SerializeField] Thread.ThreadBuffHolder buffHolder;
+        [Header("참조")]
+        [SerializeField] ThreadBuffHolder buffHolder;
+        [SerializeField] Player.PlayerInteract playerInteract;
 
-        // ── 내부 상태 ─────────────────────────────────────────────────
-        enum State { Wander, Detect, Approach, Interact }
-        State currentState = State.Wander;
+        // ── 상태 머신 ─────────────────────────────────────────────────────
+        enum State { Explore, SeekYarn, SeekCoordinate }
+        State state = State.Explore;
 
         Rigidbody2D rb;
         Vector2 currentWaypoint;
         float waypointTimer;
 
-        // 지식 데이터
-        [Serializable]
-        class KnowledgeEntry
-        {
-            public string timestamp;
-            public string eventType;
-            public string detail;
-        }
+        // ── 맵 지식 ───────────────────────────────────────────────────────
+        List<Vector2> knownSpawnPoints = new List<Vector2>();
+        List<Vector2> knownCoordinates = new List<Vector2>();
+        string savePath;
+        const float MergeRadius = 0.5f;
 
-        [Serializable]
-        class KnowledgeData
-        {
-            public List<KnowledgeEntry> entries = new List<KnowledgeEntry>();
-        }
+        [Serializable] struct V2S { public float x, y; public V2S(Vector2 v) { x = v.x; y = v.y; } public Vector2 V() => new Vector2(x, y); }
+        [Serializable] class SaveData { public List<V2S> sp = new List<V2S>(); public List<V2S> co = new List<V2S>(); }
 
-        KnowledgeData knowledge = new KnowledgeData();
-        string knowledgePath;
-
-        // ── Unity 라이프사이클 ────────────────────────────────────────
+        // ── 라이프사이클 ──────────────────────────────────────────────────
         void Awake()
         {
             rb = GetComponent<Rigidbody2D>();
-            knowledgePath = Path.Combine(Application.persistentDataPath, "umia_knowledge.json");
+            savePath = Path.Combine(Application.persistentDataPath, "umia_knowledge.json");
             LoadKnowledge();
-            PickNewWaypoint();
+            PickWanderWaypoint();
         }
 
         void FixedUpdate()
         {
-            switch (currentState)
+            ScanVision();
+
+            switch (state)
             {
-                case State.Wander:   DoWander();   break;
-                case State.Detect:   DoDetect();   break;
-                case State.Approach: DoApproach(); break;
-                case State.Interact: DoInteract(); break;
+                case State.Explore:        DoExplore();        break;
+                case State.SeekYarn:       DoSeekYarn();       break;
+                case State.SeekCoordinate: DoSeekCoordinate(); break;
             }
         }
 
-        // ── 상태별 로직 ───────────────────────────────────────────────
-
-        void DoWander()
+        // ── 시야 스캔 ─────────────────────────────────────────────────────
+        void ScanVision()
         {
-            // 플레이어가 시야에 들어오면 전환
-            if (CanSeePlayer())
-            {
-                TransitionTo(State.Detect);
-                return;
-            }
+            // 풀네임: Yarn Spinner 패키지가 최상위 Yarn 네임스페이스를 점유해 CS0118 회피.
+            var yarns = FindObjectsByType<ProjectT.Thread.Yarn>(FindObjectsSortMode.None);
+            foreach (var yarn in yarns)
+                if (CanSee(yarn.transform.position))
+                    AddSpawnPoint(yarn.transform.position);
 
-            MoveToward(currentWaypoint, wanderSpeed);
+            var coords = FindObjectsByType<Coord>(FindObjectsSortMode.None);
+            foreach (var coord in coords)
+                if (CanSee(coord.transform.position))
+                    AddCoordinate(coord.transform.position);
+        }
 
+        // ── Explore ───────────────────────────────────────────────────────
+        void DoExplore()
+        {
+            MoveToward(currentWaypoint);
             waypointTimer += Time.fixedDeltaTime;
-            float dist = Vector2.Distance(rb.position, currentWaypoint);
 
-            // 도착 또는 타임아웃 → 새 웨이포인트
-            if (dist < waypointArrivalDist || waypointTimer >= waypointTimeout)
-                PickNewWaypoint();
+            if (ReachedWaypoint() || TimedOut())
+                PickWanderWaypoint();
+
+            if (!buffHolder.HasBuff && knownSpawnPoints.Count > 0)
+            { EnterState(State.SeekYarn); return; }
+
+            if (buffHolder.HasBuff && HasKnownInactiveCoord())
+            { EnterState(State.SeekCoordinate); return; }
         }
 
-        void DoDetect()
+        // ── SeekYarn ──────────────────────────────────────────────────────
+        void DoSeekYarn()
         {
-            // 발견 상태에서 플레이어가 사라지면 배회로 복귀
-            if (!CanSeePlayer())
+            if (buffHolder.HasBuff) { EnterState(State.SeekCoordinate); return; }
+
+            MoveToward(currentWaypoint);
+            waypointTimer += Time.fixedDeltaTime;
+
+            var yarn = FindVisibleYarn();
+            if (yarn != null)
             {
-                TransitionTo(State.Wander);
-                return;
-            }
-
-            float dist = Vector2.Distance(rb.position, PlayerPos());
-            if (dist <= interactRange)
-                TransitionTo(State.Interact);
-            else
-                TransitionTo(State.Approach);
-        }
-
-        void DoApproach()
-        {
-            if (!CanSeePlayer())
-            {
-                TransitionTo(State.Wander);
-                return;
-            }
-
-            float dist = Vector2.Distance(rb.position, PlayerPos());
-            if (dist <= interactRange)
-            {
-                TransitionTo(State.Interact);
-                return;
-            }
-
-            MoveToward(PlayerPos(), approachSpeed);
-        }
-
-        void DoInteract()
-        {
-            // 멈추고 상호작용 시도
-            rb.linearVelocity = Vector2.zero;
-
-            if (buffHolder == null) { TransitionTo(State.Wander); return; }
-
-            // 플레이어 ThreadBuffHolder를 찾아 TryBind 시도
-            if (playerTransform != null)
-            {
-                var playerBuff = playerTransform.GetComponent<Thread.ThreadBuffHolder>();
-                if (playerBuff != null && playerBuff.HasBuff)
+                float d = Vector2.Distance(rb.position, (Vector2)yarn.transform.position);
+                if (d <= interactRange)
                 {
-                    // Coordinate를 찾아 TryBind
-                    var coords = FindObjectsByType<Coordinate.Coordinate>(FindObjectsSortMode.None);
-                    foreach (var coord in coords)
-                    {
-                        float coordDist = Vector2.Distance(rb.position, (Vector2)coord.transform.position);
-                        if (coordDist <= interactRange)
-                        {
-                            bool bound = coord.TryBind(playerBuff);
-                            if (bound)
-                            {
-                                RecordKnowledge("CoordinateBound", $"Coord={coord.name} type={coord.BoundType}");
-                                // TryBind 성공 후 다음 프레임에 상태 재평가
-                                StartCoroutine(ReEvaluateNextFrame());
-                                return;
-                            }
-                        }
-                    }
+                    yarn.TakeHit(buffHolder);
+                    return;
+                }
+                SetWaypoint(yarn.transform.position);
+                return;
+            }
+
+            if (ReachedWaypoint() || TimedOut())
+                if (!PickSpawnWaypoint()) EnterState(State.Explore);
+        }
+
+        // ── SeekCoordinate ────────────────────────────────────────────────
+        void DoSeekCoordinate()
+        {
+            if (!buffHolder.HasBuff) { EnterState(State.SeekYarn); return; }
+
+            MoveToward(currentWaypoint);
+            waypointTimer += Time.fixedDeltaTime;
+
+            var coord = FindVisibleInactiveCoord();
+            if (coord != null)
+            {
+                float d = Vector2.Distance(rb.position, (Vector2)coord.transform.position);
+                if (d <= interactRange)
+                {
+                    coord.TryBind(buffHolder);
+                    return;
+                }
+                SetWaypoint(coord.transform.position);
+                return;
+            }
+
+            if (ReachedWaypoint() || TimedOut())
+                if (!PickCoordWaypoint()) EnterState(State.Explore);
+        }
+
+        // ── 상태 전환 ─────────────────────────────────────────────────────
+        void EnterState(State next)
+        {
+            state = next;
+            switch (next)
+            {
+                case State.Explore:        PickWanderWaypoint(); break;
+                case State.SeekYarn:       if (!PickSpawnWaypoint()) state = State.Explore; break;
+                case State.SeekCoordinate: if (!PickCoordWaypoint()) state = State.Explore; break;
+            }
+        }
+
+        // ── 타겟 탐색 ─────────────────────────────────────────────────────
+        ProjectT.Thread.Yarn FindVisibleYarn()
+        {
+            var yarns = FindObjectsByType<ProjectT.Thread.Yarn>(FindObjectsSortMode.None);
+            foreach (var y in yarns)
+                if (CanSee(y.transform.position)) return y;
+            return null;
+        }
+
+        Coord FindVisibleInactiveCoord()
+        {
+            Coord playerTarget = playerInteract != null ? playerInteract.CurrentInteractTarget : null;
+            var coords = FindObjectsByType<Coord>(FindObjectsSortMode.None);
+            foreach (var c in coords)
+            {
+                if (c.IsActive || c == playerTarget) continue;
+                if (CanSee(c.transform.position)) return c;
+            }
+            return null;
+        }
+
+        bool HasKnownInactiveCoord()
+        {
+            Coord playerTarget = playerInteract != null ? playerInteract.CurrentInteractTarget : null;
+            var coords = FindObjectsByType<Coord>(FindObjectsSortMode.None);
+            foreach (var c in coords)
+            {
+                if (c.IsActive || c == playerTarget) continue;
+                foreach (var k in knownCoordinates)
+                    if (Vector2.Distance(k, c.transform.position) < MergeRadius) return true;
+            }
+            return false;
+        }
+
+        // ── 웨이포인트 선택 (랜덤 — 항상 최선 아님) ─────────────────────
+        bool PickSpawnWaypoint()
+        {
+            if (knownSpawnPoints.Count == 0) return false;
+            SetWaypoint(knownSpawnPoints[UnityEngine.Random.Range(0, knownSpawnPoints.Count)]);
+            return true;
+        }
+
+        bool PickCoordWaypoint()
+        {
+            Coord playerTarget = playerInteract != null ? playerInteract.CurrentInteractTarget : null;
+            var candidates = new List<Vector2>();
+            var coords = FindObjectsByType<Coord>(FindObjectsSortMode.None);
+            foreach (var c in coords)
+            {
+                if (c.IsActive || c == playerTarget) continue;
+                foreach (var k in knownCoordinates)
+                {
+                    if (Vector2.Distance(k, c.transform.position) < MergeRadius)
+                    { candidates.Add(c.transform.position); break; }
                 }
             }
-
-            // 범위 밖이면 다시 Detect로
-            if (!CanSeePlayer() || Vector2.Distance(rb.position, PlayerPos()) > interactRange * 1.5f)
-                TransitionTo(State.Detect);
+            if (candidates.Count == 0) return false;
+            SetWaypoint(candidates[UnityEngine.Random.Range(0, candidates.Count)]);
+            return true;
         }
 
-        IEnumerator ReEvaluateNextFrame()
+        void PickWanderWaypoint() => SetWaypoint(new Vector2(
+            UnityEngine.Random.Range(wanderMin.x, wanderMax.x),
+            UnityEngine.Random.Range(wanderMin.y, wanderMax.y)));
+
+        void SetWaypoint(Vector2 pos) { currentWaypoint = pos; waypointTimer = 0f; }
+
+        // ── 이동 / 판정 ───────────────────────────────────────────────────
+        void MoveToward(Vector2 target) => rb.linearVelocity = (target - rb.position).normalized * speed;
+        bool ReachedWaypoint() => Vector2.Distance(rb.position, currentWaypoint) < waypointArrivalDist;
+        bool TimedOut() => waypointTimer >= waypointTimeout;
+
+        // ── 시야 판정 ─────────────────────────────────────────────────────
+        bool CanSee(Vector2 pos)
         {
-            yield return null; // 다음 프레임
-            TransitionTo(State.Detect);
+            if (Vector2.Distance(rb.position, pos) > visionRadius) return false;
+            return Physics2D.Linecast(rb.position, pos, wallMask).collider == null;
         }
 
-        // ── 헬퍼 ─────────────────────────────────────────────────────
-
-        void TransitionTo(State next)
+        // ── 지식 관리 ─────────────────────────────────────────────────────
+        void AddSpawnPoint(Vector2 pos)
         {
-            currentState = next;
-            if (next == State.Wander)
-                PickNewWaypoint();
-        }
-
-        void PickNewWaypoint()
-        {
-            currentWaypoint = new Vector2(
-                UnityEngine.Random.Range(wanderMin.x, wanderMax.x),
-                UnityEngine.Random.Range(wanderMin.y, wanderMax.y)
-            );
-            waypointTimer = 0f;
-        }
-
-        void MoveToward(Vector2 target, float speed)
-        {
-            Vector2 dir = (target - rb.position).normalized;
-            rb.linearVelocity = dir * speed;
-        }
-
-        Vector2 PlayerPos()
-        {
-            if (playerTransform == null) return rb.position;
-            return playerTransform.position;
-        }
-
-        bool CanSeePlayer()
-        {
-            if (playerTransform == null) return false;
-            Vector2 origin = rb.position;
-            Vector2 target = PlayerPos();
-            float dist = Vector2.Distance(origin, target);
-            if (dist > detectRadius) return false;
-
-            // Wall 레이어로 Linecast — 벽에 막히면 false
-            RaycastHit2D hit = Physics2D.Linecast(origin, target, wallMask);
-            return hit.collider == null;
-        }
-
-        // ── 지식 저장 ─────────────────────────────────────────────────
-
-        void RecordKnowledge(string eventType, string detail)
-        {
-            var entry = new KnowledgeEntry
-            {
-                timestamp = DateTime.UtcNow.ToString("o"),
-                eventType = eventType,
-                detail = detail
-            };
-            knowledge.entries.Add(entry);
+            foreach (var p in knownSpawnPoints)
+                if (Vector2.Distance(p, pos) < MergeRadius) return;
+            knownSpawnPoints.Add(pos);
             SaveKnowledge();
-            Debug.Log($"[UmiaBrain] Knowledge recorded: {eventType} — {detail}");
+        }
+
+        void AddCoordinate(Vector2 pos)
+        {
+            foreach (var p in knownCoordinates)
+                if (Vector2.Distance(p, pos) < MergeRadius) return;
+            knownCoordinates.Add(pos);
+            SaveKnowledge();
         }
 
         void SaveKnowledge()
         {
-            try
-            {
-                string json = JsonUtility.ToJson(knowledge, true);
-                File.WriteAllText(knowledgePath, json);
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"[UmiaBrain] Failed to save knowledge: {e.Message}");
-            }
+            var d = new SaveData();
+            foreach (var p in knownSpawnPoints) d.sp.Add(new V2S(p));
+            foreach (var p in knownCoordinates) d.co.Add(new V2S(p));
+            try { File.WriteAllText(savePath, JsonUtility.ToJson(d, true)); }
+            catch (Exception e) { Debug.LogError($"[UmiaBrain] Save failed: {e.Message}"); }
         }
 
         void LoadKnowledge()
         {
             try
             {
-                if (File.Exists(knowledgePath))
-                {
-                    string json = File.ReadAllText(knowledgePath);
-                    knowledge = JsonUtility.FromJson<KnowledgeData>(json) ?? new KnowledgeData();
-                    Debug.Log($"[UmiaBrain] Loaded {knowledge.entries.Count} knowledge entries.");
-                }
+                if (!File.Exists(savePath)) return;
+                var d = JsonUtility.FromJson<SaveData>(File.ReadAllText(savePath));
+                if (d == null) return;
+                foreach (var p in d.sp) knownSpawnPoints.Add(p.V());
+                foreach (var p in d.co) knownCoordinates.Add(p.V());
+                Debug.Log($"[UmiaBrain] Loaded: {knownSpawnPoints.Count} spawn pts, {knownCoordinates.Count} coords.");
             }
-            catch (Exception e)
-            {
-                Debug.LogError($"[UmiaBrain] Failed to load knowledge: {e.Message}");
-                knowledge = new KnowledgeData();
-            }
+            catch (Exception e) { Debug.LogError($"[UmiaBrain] Load failed: {e.Message}"); }
         }
 
         [ContextMenu("Clear Knowledge")]
         void ClearKnowledge()
         {
-            knowledge = new KnowledgeData();
+            knownSpawnPoints.Clear();
+            knownCoordinates.Clear();
             SaveKnowledge();
             Debug.Log("[UmiaBrain] Knowledge cleared.");
         }
 
-        // ── 에디터 기즈모 ─────────────────────────────────────────────
+        // ── 에디터 기즈모 ─────────────────────────────────────────────────
         void OnDrawGizmosSelected()
         {
-            // 탐지 반경
             Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, detectRadius);
-
-            // 상호작용 반경
+            Gizmos.DrawWireSphere(transform.position, visionRadius);
             Gizmos.color = Color.cyan;
             Gizmos.DrawWireSphere(transform.position, interactRange);
-
-            // 웨이포인트 범위 Rect
             Gizmos.color = Color.green;
-            Vector2 center = (wanderMin + wanderMax) * 0.5f;
-            Vector2 size = wanderMax - wanderMin;
-            Gizmos.DrawWireCube(center, size);
-
-            // 현재 웨이포인트 목표
-            if (Application.isPlaying && currentState == State.Wander)
+            Gizmos.DrawWireCube((wanderMin + wanderMax) * 0.5f, wanderMax - wanderMin);
+            if (Application.isPlaying)
             {
                 Gizmos.color = Color.magenta;
                 Gizmos.DrawSphere(currentWaypoint, 0.2f);
