@@ -13,7 +13,7 @@ namespace ProjectT.NPC
 {
     // Umia AI. 상태: Explore(배회) → SeekYarn(실타래 수집) → SeekCoordinate(좌표 바인드).
     // 맵 지식(스폰 위치·좌표 위치)은 시야 + 벽 Linecast로 발견하며 JSON으로 영구 저장.
-    // 이동은 A* Pathfinding Project 기반. Frontier Exploration으로 미방문 셀을 향해 자연스럽게 확산.
+    // 이동은 A* Pathfinding Project 기반. 맵 구조(외길·갈림길·막다른 길) 인식 후 DFS 방식으로 탐색.
     [RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(Seeker))]
     public class UmiaBrain : MonoBehaviour
@@ -30,10 +30,10 @@ namespace ProjectT.NPC
         // 목적지 도달 여부와 무관하게 이 주기로 경로 재계산 — 동적 장애물/타겟 이동 대응.
         [SerializeField] float repathInterval = 0.5f;
 
-        [Header("Frontier 탐색")]
-        // 그리드 해상도. 시야반경/맵 크기 대비 너무 작으면 후보 폭발, 너무 크면 탐색 거침.
+        [Header("탐색")]
+        // coarse grid 해상도 — visitedCells / PickFrontierWaypoint 폴백에 사용.
         [SerializeField] float cellSize = 2f;
-        // 이전 이동 방향과 일치하는 frontier에 얼마나 가중치를 더 줄지 — 지그재그 억제.
+        // Frontier 폴백에서만 사용하는 방향 관성 가중치.
         [SerializeField] float directionInertiaWeight = 0.5f;
 
         [Header("시야")]
@@ -70,6 +70,10 @@ namespace ProjectT.NPC
         // Dictionary인 이유: HashSet도 되지만 향후 셀별 메타(마지막 방문시각 등) 확장 여지 남김.
         readonly Dictionary<Vector2Int, bool> visitedCells = new Dictionary<Vector2Int, bool>();
         Vector2 lastMoveDir;
+        // 이전 탐색 결정 지점 위치 — "온 방향"(cameFrom) 계산에 사용.
+        Vector2 prevDecisionPos;
+        // 텔레포터 타일맵 캐시 — GetCardinalExits에서 시야 조건 체크에 사용.
+        UnityEngine.Tilemaps.Tilemap teleportTilemap;
 
         // ── 맵 지식 ───────────────────────────────────────────────────────
         List<Vector2> knownSpawnPoints = new List<Vector2>();
@@ -88,6 +92,9 @@ namespace ProjectT.NPC
             // Path 심볼이 Pathfinding.Path와 System.IO.Path 두 곳에 존재 — 명시적으로 System.IO.Path 사용.
             savePath = System.IO.Path.Combine(Application.persistentDataPath, "umia_knowledge.json");
             LoadKnowledge();
+
+            foreach (var tm in FindObjectsByType<UnityEngine.Tilemaps.Tilemap>(FindObjectsSortMode.None))
+                if (tm.gameObject.name == "Teleport Shadow") { teleportTilemap = tm; break; }
 
             // GridGraph의 erodeIterations를 강제로 세팅.
             // 이유: Umia 콜라이더가 벽에 붙은 노드를 경로로 잡으면 콜라이더가 벽에 걸려 이동이 정지된다.
@@ -118,12 +125,10 @@ namespace ProjectT.NPC
         // A* 그리드는 직사각형이라 맵 바깥 void 영역도 walkable로 잡힌다 — 이를 타일맵 기준으로 보정.
         void PostProcessWalkability(Pathfinding.GridGraph graph)
         {
-            UnityEngine.Tilemaps.Tilemap floorMap = null, teleportMap = null;
+            UnityEngine.Tilemaps.Tilemap floorMap = null;
             foreach (var tm in FindObjectsByType<UnityEngine.Tilemaps.Tilemap>(FindObjectsSortMode.None))
-            {
-                if (tm.gameObject.name == "Floor") floorMap = tm;
-                else if (tm.gameObject.name == "Teleport Shadow") teleportMap = tm;
-            }
+                if (tm.gameObject.name == "Floor") { floorMap = tm; break; }
+            var teleportMap = teleportTilemap;
             if (floorMap == null) { Debug.LogWarning("[UmiaBrain] Floor tilemap not found — walkability post-process skipped."); return; }
 
             int fixed_ = 0;
@@ -145,7 +150,8 @@ namespace ProjectT.NPC
         {
             // AstarPath Scan 완료 이후에 첫 경로 요청을 시작하기 위해 Start에서 초기화.
             MarkVisited(rb.position);
-            PickFrontierWaypoint();
+            prevDecisionPos = rb.position;
+            PickExploreWaypoint();
         }
 
         void FixedUpdate()
@@ -193,7 +199,7 @@ namespace ProjectT.NPC
             wanderTimer += Time.fixedDeltaTime;
 
             if (ReachedWaypoint() || TimedOut())
-                PickFrontierWaypoint();
+                PickExploreWaypoint();
 
             // 방문 안 한 스폰포인트가 있으면 즉시 수거 시도.
             if (!buffHolder.HasBuff && HasUntriedSpawnPoint())
@@ -288,7 +294,7 @@ namespace ProjectT.NPC
             {
                 case State.Explore:
                     wanderTimer = 0f;
-                    PickFrontierWaypoint();
+                    PickExploreWaypoint();
                     break;
                 case State.SeekYarn:
                     if (!PickUntriedSpawnWaypoint()) state = State.Explore;
@@ -472,6 +478,119 @@ namespace ProjectT.NPC
             // 그래프 밖 위치는 경계 노드를 반환 — 노드 중심까지 거리가 nodeSize*1.5 초과면 범위 밖으로 판정.
             if (Vector2.Distance((Vector2)(Vector3)nearest.position, worldPos) > graph.nodeSize * 1.5f) return false;
             return nearest.node.Walkable;
+        }
+
+        // ── 맵 구조 인식 탐색 (1a-1e) ────────────────────────────────────────
+
+        // 현재 위치에서 A* 그래프 기준 walkable 출구 방향 목록.
+        // 텔레포터 타일 출구는 CanSee 통과 시에만 포함 (시야 밖 텔레포터는 갈림길 제외).
+        List<Vector2> GetCardinalExits(Vector2 pos)
+        {
+            var result = new List<Vector2>(4);
+            float step = AstarPath.active?.data?.gridGraph?.nodeSize ?? 1f;
+            foreach (var dir in new[] { Vector2.up, Vector2.down, Vector2.left, Vector2.right })
+            {
+                Vector2 exitPos = pos + dir * step;
+                if (!IsAstarWalkable(exitPos)) continue;
+                if (teleportTilemap != null
+                    && teleportTilemap.HasTile(teleportTilemap.WorldToCell(exitPos))
+                    && !CanSee(exitPos)) continue;
+                result.Add(dir);
+            }
+            return result;
+        }
+
+        // 한 방향으로 walkable 경로를 추적해 벽 직전 위치를 반환 (1e: 끝까지 이동).
+        // 갈림길 감지는 PickExploreWaypoint의 GetCardinalExits에서 담당하므로 trace는 단순히 벽까지.
+        Vector2 TraceInDirection(Vector2 start, Vector2 dir, int maxSteps = 15)
+        {
+            float step = AstarPath.active?.data?.gridGraph?.nodeSize ?? 1f;
+            Vector2 cur = start;
+            for (int i = 0; i < maxSteps; i++)
+            {
+                Vector2 next = cur + dir * step;
+                if (!IsAstarWalkable(next)) break;
+                cur = next;
+            }
+            return cur;
+        }
+
+        // 해당 방향으로 미방문 셀(frontier)이 존재하는지 확인 — 미탐색 방향 우선 선택에 사용.
+        bool HasFrontierInDirection(Vector2 pos, Vector2 dir, int steps = 6)
+        {
+            for (int i = 1; i <= steps; i++)
+                if (!visitedCells.ContainsKey(WorldToCell(pos + dir * (cellSize * i)))) return true;
+            return false;
+        }
+
+        // 맵 구조 인식 탐색 메인 메서드.
+        // GetCardinalExits로 출구를 파악하고 온 방향 제외 후:
+        //   0개 → 막다른 길(1c): 돌아감
+        //   1개 → 외길(1a): 그쪽으로 계속
+        //   2개+ → 갈림길(1b): 미탐색 우선, yarn 방향 우선(1d), 랜덤 선택
+        // TraceInDirection으로 다음 갈림길·벽 직전까지 이동(1e).
+        bool PickExploreWaypoint()
+        {
+            // rb.position이 A* 그리드 노드 중심과 어긋나면 IsAstarWalkable이 erode된 인접 노드를
+            // 쿼리해 실제 통로를 막혔다고 오판한다. 가장 가까운 노드 중심으로 스냅해 방지.
+            Vector2 pos = rb.position;
+            var snapNode = AstarPath.active?.GetNearest(pos, NNConstraint.None);
+            if (snapNode.node != null && snapNode.node.Walkable)
+                pos = (Vector2)(Vector3)snapNode.node.position;
+
+            // "온 방향" = 이전 결정 지점 → 현재 위치 방향의 반대.
+            Vector2 cameFrom = Vector2.zero;
+            if ((pos - prevDecisionPos).sqrMagnitude > 0.25f)
+                cameFrom = (prevDecisionPos - pos).normalized;
+            prevDecisionPos = pos;
+
+            var allExits = GetCardinalExits(pos);
+            if (allExits.Count == 0) return PickFrontierWaypoint();
+
+            // 온 방향 제외 (dot > 0.5 ≒ 거의 온 방향).
+            var forwardExits = new List<Vector2>(4);
+            foreach (var e in allExits)
+                if (cameFrom.sqrMagnitude < 0.01f || Vector2.Dot(e, cameFrom) < 0.5f)
+                    forwardExits.Add(e);
+
+            // 1c: 막다른 길 — 온 방향으로 복귀.
+            if (forwardExits.Count == 0)
+            {
+                Vector2 back = allExits[0];
+                float bestDot = Vector2.Dot(allExits[0], cameFrom);
+                for (int i = 1; i < allExits.Count; i++)
+                {
+                    float d = Vector2.Dot(allExits[i], cameFrom);
+                    if (d > bestDot) { bestDot = d; back = allExits[i]; }
+                }
+                SetWaypoint(TraceInDirection(pos, back));
+                return true;
+            }
+
+            // 1d: 시야 내 yarn → 그 방향 우선.
+            var yarn = FindVisibleYarn();
+            if (yarn != null && forwardExits.Count > 1)
+            {
+                Vector2 toYarn = ((Vector2)yarn.transform.position - pos).normalized;
+                Vector2 best = forwardExits[0];
+                float bestDot = Vector2.Dot(forwardExits[0], toYarn);
+                for (int i = 1; i < forwardExits.Count; i++)
+                {
+                    float d = Vector2.Dot(forwardExits[i], toYarn);
+                    if (d > bestDot) { bestDot = d; best = forwardExits[i]; }
+                }
+                if (bestDot > 0.3f) { SetWaypoint(TraceInDirection(pos, best)); return true; }
+            }
+
+            // 미탐색 방향 우선, 없으면 전체 forwardExits에서 선택.
+            var unexplored = new List<Vector2>(4);
+            foreach (var e in forwardExits)
+                if (HasFrontierInDirection(pos, e)) unexplored.Add(e);
+            var pool = unexplored.Count > 0 ? unexplored : forwardExits;
+
+            // 1a: 단일 출구 → 그쪽으로. 1b: 복수 출구 → 랜덤. 1e: 끝까지 추적해 waypoint 설정.
+            SetWaypoint(TraceInDirection(pos, pool[UnityEngine.Random.Range(0, pool.Count)]));
+            return true;
         }
 
         // Frontier = "방문된 셀의 4방향 이웃 중 방문 안 된 셀".
