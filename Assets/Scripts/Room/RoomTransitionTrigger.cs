@@ -8,6 +8,8 @@ public class RoomTransitionTrigger : MonoBehaviour
 {
     [SerializeField] Transform targetSpawnPoint;
 
+    public Vector2? TargetPosition => targetSpawnPoint != null ? (Vector2?)((Vector2)targetSpawnPoint.position) : null;
+
     void OnTriggerEnter2D(Collider2D other)
     {
         if (!other.CompareTag("Player")) return;

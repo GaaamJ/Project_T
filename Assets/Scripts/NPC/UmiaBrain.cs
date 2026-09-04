@@ -123,6 +123,7 @@ namespace ProjectT.NPC
 
         // A* 스캔 후 보정: Floor/텔레포터 타일이 없는 노드를 nonwalkable로 마킹.
         // A* 그리드는 직사각형이라 맵 바깥 void 영역도 walkable로 잡힌다 — 이를 타일맵 기준으로 보정.
+        // Teleport Shadow 타일이 없는 RoomTransitionTrigger 위치도 walkable 유지 (타일맵 누락 대비).
         void PostProcessWalkability(Pathfinding.GridGraph graph)
         {
             UnityEngine.Tilemaps.Tilemap floorMap = null;
@@ -130,6 +131,8 @@ namespace ProjectT.NPC
                 if (tm.gameObject.name == "Floor") { floorMap = tm; break; }
             var teleportMap = teleportTilemap;
             if (floorMap == null) { Debug.LogWarning("[UmiaBrain] Floor tilemap not found — walkability post-process skipped."); return; }
+
+            var triggers = FindObjectsByType<RoomTransitionTrigger>(FindObjectsSortMode.None);
 
             int fixed_ = 0;
             for (int z = 0; z < graph.depth; z++)
@@ -141,7 +144,13 @@ namespace ProjectT.NPC
                     Vector3Int cell = floorMap.WorldToCell(worldPos);
                     bool onFloor = floorMap.HasTile(cell);
                     bool onTeleport = teleportMap != null && teleportMap.HasTile(cell);
-                    if (!onFloor && !onTeleport) { node.Walkable = false; fixed_++; }
+                    if (onFloor || onTeleport) continue;
+                    // RoomTransitionTrigger 위치는 타일맵 누락이어도 walkable 유지
+                    bool onTrigger = false;
+                    foreach (var t in triggers)
+                        if (Vector2.Distance((Vector2)worldPos, (Vector2)t.transform.position) < graph.nodeSize)
+                        { onTrigger = true; break; }
+                    if (!onTrigger) { node.Walkable = false; fixed_++; }
                 }
             Debug.Log($"[UmiaBrain] PostProcessWalkability: {fixed_} void nodes → nonwalkable.");
         }
@@ -585,15 +594,72 @@ namespace ProjectT.NPC
                 if (bestDot > 0.3f) { SetWaypoint(TraceInDirection(pos, best)); return true; }
             }
 
-            // 미탐색 방향 우선, 없으면 전체 forwardExits에서 선택.
-            var unexplored = new List<Vector2>(4);
+            // 텔레포터 방향 분류: 목적지 방문 여부에 따라 known/unknown 구분.
+            float nodeStep = AstarPath.active?.data?.gridGraph?.nodeSize ?? 1f;
+            var normalFwd  = new List<Vector2>(4);
+            var tpUnknown  = new List<Vector2>(4); // 목적지 미방문
+            var tpKnown    = new List<Vector2>(4); // 목적지 기방문
+
             foreach (var e in forwardExits)
+            {
+                Vector2 exitPos = pos + e * nodeStep;
+                if (teleportTilemap != null && teleportTilemap.HasTile(teleportTilemap.WorldToCell(exitPos)))
+                {
+                    if (IsTeleporterDestinationKnown(exitPos)) tpKnown.Add(e);
+                    else tpUnknown.Add(e);
+                }
+                else normalFwd.Add(e);
+            }
+
+            // 텔레포터가 유일한 경로인 경우 (Case 1, 2)
+            if (normalFwd.Count == 0)
+            {
+                if (tpUnknown.Count > 0)
+                {
+                    // Case 2: 목적지 모름 + 유일한 길 → 그냥 가 봄
+                    SetWaypoint(TraceInDirection(pos, tpUnknown[UnityEngine.Random.Range(0, tpUnknown.Count)]));
+                }
+                else if (cameFrom.sqrMagnitude > 0.01f && UnityEngine.Random.value < 0.5f)
+                {
+                    // Case 1: 목적지 앎 + 유일한 길 → 50%로 되돌아감
+                    Vector2 back = allExits[0]; float bestDot2 = Vector2.Dot(allExits[0], cameFrom);
+                    for (int i = 1; i < allExits.Count; i++) { float d = Vector2.Dot(allExits[i], cameFrom); if (d > bestDot2) { bestDot2 = d; back = allExits[i]; } }
+                    SetWaypoint(TraceInDirection(pos, back));
+                }
+                else
+                {
+                    // Case 1: 목적지 앎 + 유일한 길 → 50%로 통과
+                    SetWaypoint(TraceInDirection(pos, tpKnown[UnityEngine.Random.Range(0, tpKnown.Count)]));
+                }
+                return true;
+            }
+
+            // 일반 출구가 있는 경우 (Case 3, 4 + 1a/1b)
+            // 미탐색 풀: 일반 미방문 방향 + 목적지 모르는 텔레포터(Case 4 우선).
+            var unexplored = new List<Vector2>(4);
+            foreach (var e in normalFwd)
                 if (HasFrontierInDirection(pos, e)) unexplored.Add(e);
-            var pool = unexplored.Count > 0 ? unexplored : forwardExits;
+            foreach (var e in tpUnknown) unexplored.Add(e); // Case 4
+            var pool = unexplored.Count > 0 ? unexplored : forwardExits; // Case 3: 알려진 텔레포터 포함 전체
 
             // 1a: 단일 출구 → 그쪽으로. 1b: 복수 출구 → 랜덤. 1e: 끝까지 추적해 waypoint 설정.
             SetWaypoint(TraceInDirection(pos, pool[UnityEngine.Random.Range(0, pool.Count)]));
             return true;
+        }
+
+        // 텔레포터 목적지가 이미 방문된 지역인지 확인.
+        bool IsTeleporterDestinationKnown(Vector2 teleporterPos)
+        {
+            float step = AstarPath.active?.data?.gridGraph?.nodeSize ?? 1f;
+            RoomTransitionTrigger nearest = null;
+            float nearestDist = step * 2f;
+            foreach (var rtt in FindObjectsByType<RoomTransitionTrigger>(FindObjectsSortMode.None))
+            {
+                float d = Vector2.Distance((Vector2)rtt.transform.position, teleporterPos);
+                if (d < nearestDist) { nearestDist = d; nearest = rtt; }
+            }
+            var dest = nearest?.TargetPosition;
+            return dest.HasValue && visitedCells.ContainsKey(WorldToCell(dest.Value));
         }
 
         // Frontier = "방문된 셀의 4방향 이웃 중 방문 안 된 셀".
