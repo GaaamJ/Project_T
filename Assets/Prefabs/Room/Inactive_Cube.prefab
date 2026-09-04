@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8536672151756412851}
   - component: {fileID: 4596660942714180108}
   - component: {fileID: 5894612093461220258}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Inactive_Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -80,7 +80,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 1617911051
-  m_SortingLayer: 3
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 8778950882700069464, guid: 09366b41bf8af3842a589440aef2995d, type: 3}

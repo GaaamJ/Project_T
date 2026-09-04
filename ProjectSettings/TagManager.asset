@@ -12,12 +12,12 @@ TagManager:
   - Water
   - UI
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Player
+  - Ground
+  - Interactable
+  - Attackable
+  - Wall
+  - NPC
   - 
   - 
   - 
@@ -40,6 +40,9 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Background
+    uniqueID: 531515289
     locked: 0
   - name: BackProp
     uniqueID: 1140610011
