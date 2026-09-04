@@ -1,5 +1,9 @@
 ﻿<Solution>
+  <Project Path="AstarPathfindingProject.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="PackageToolsEditor.csproj" />
   <Project Path="ProjectT.Thread.csproj" />
+  <Project Path="AstarPathfindingProjectEditor.csproj" />
   <Project Path="ProjectT.Tests.Editor.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
 </Solution>

@@ -14046,13 +14046,9 @@ Tilemap:
   m_TileAssetArray:
   - m_RefCount: 1330
     m_Data: {fileID: 11400000, guid: d6011811f5141ec4485b16fd510e8d5a, type: 2}
-  - m_RefCount: 0
-    m_Data: {fileID: 0}
   m_TileSpriteArray:
   - m_RefCount: 1330
     m_Data: {fileID: 1403947235, guid: 09366b41bf8af3842a589440aef2995d, type: 3}
-  - m_RefCount: 0
-    m_Data: {fileID: 0}
   m_TileMatrixArray:
   - m_RefCount: 1330
     m_Data:
@@ -14078,8 +14074,8 @@ Tilemap:
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Origin: {x: -81, y: -4, z: 0}
-  m_Size: {x: 159, y: 40, z: 1}
+  m_Origin: {x: -81, y: -3, z: 0}
+  m_Size: {x: 159, y: 39, z: 1}
   m_TileAnchor: {x: 0.5, y: 0.5, z: 0}
   m_TileOrientation: 0
   m_TileOrientationMatrix:
@@ -15468,6 +15464,93 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1824449862683913820, guid: 4d3b27b9c27925f499df835d009854a3, type: 3}
   m_PrefabInstance: {fileID: 1053435995}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1065713935
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1065713937}
+  - component: {fileID: 1065713936}
+  m_Layer: 0
+  m_Name: A* Pathfinding
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1065713936
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1065713935}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78396926cbbfc4ac3b48fc5fc34a87d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: AstarPathfindingProject::AstarPath
+  version: 1
+  data:
+    dataString: UEsDBBQAAAgIAABIIexQr76VaAIAABwFAAALACQAZ3JhcGgwLmpzb24KACAAAAAAAAEAGAAAgD7V3rGdAQCAPtXesZ0BAIA+1d6xnQFlVE1z2jAQ/SuMzk3GJpSE3lpCSA9JmJBOLr4IaY01yJJHkgMkw3/vrmxjl55Y3n69fbvyF1PGVyCCdUun5JOVwH6MGNns26h3PsKBb61Zq0/oYt6VDAUF8RjzyoOyiKeU5m0JwSnx02w1BScI1kbl1pULuYW59cEjnHPtAV3OBso2CH2N2AF/rmaUckRrfEvWJ1qzZHRCU4AJ4Aah6fX3NjadRpOCm9jaCM3LCiQR71PS6U2bMbmJcQZnakOIv7BaK98SYuFYxYHXVQEOaGKpOM4XSSTXdwgUoLZFILbD7Jc89xDa8R0/3iuHQjVl2S/bqFdyv2uYfXBdU6NxMrmLrJqqT/8FXKXRnTtbPnaN04SahEKJ3Ss/Cu7DQN8hfN9zT6NCe653fKPhvQDzbJfO1kaiM7iaUmsP4/v+73m2eQFi1+MN1Q7s+tZVr3m3z26bNMQpzn+Ya1VuopaTBlhrGyWPRwAOl/MbGccT8W0JRInGHw9vfDu8pdbxoJwP6GrHNMRvY2tHoWwRRaNx6jC3zkCE21EqMFyH4wrLhMslXvgGbS88D5xeTdu89XWP4SIlwn18kly4VnZ/3pYv7P4JfPFSB60M9KTJ8Yw6za0xzY0NNenS1rXLuRikbWsl/70tltzJnE8nfMblTHDYXN1COk1uRSqnubiZJAmLx6cMzsn1qiHayoNbM31xg4fWfUxGS8ereO/S8f1SfZZ2ILkyuV0LB2Bemgpn4uCwCT5MuZAKBVpDCMrEfbOvjGkrdiCzc6EsTro4BMezvkrGKvVhAyEZm8evR8YIPh/zysGHgj0174qd2OkvUEsDBBQAAAgIAABIIewhWsEsbQAAAHgAAAAJACQAbWV0YS5qc29uCgAgAAAAAAABABgAAIA+1d6xnQEAgD7V3rGdAQCAPtXesZ0Bq1YqSy0qzszPU7JSMNEz0jM011FQSi9KLMgoBooYgjilmSkgdrSSgUVKWqKZSaJlYoplcmJqkq55qqGZgXmyYYpZWrKxiYGBUixQfUllQapfYm4qRE9AYklGWmZeSmZeup57UWaKO8hopdhaAFBLAQItABQAAAgIAABIIexQr76VaAIAABwFAAALACQAAAAAAAAAAAAAAAAAAABncmFwaDAuanNvbgoAIAAAAAAAAQAYAACAPtXesZ0BAIA+1d6xnQEAgD7V3rGdAVBLAQItABQAAAgIAABIIewhWsEsbQAAAHgAAAAJACQAAAAAAAAAAAAAALUCAABtZXRhLmpzb24KACAAAAAAAAEAGAAAgD7V3rGdAQCAPtXesZ0BAIA+1d6xnQFQSwUGAAAAAAIAAgC4AAAAbQMAAAAA
+    upgradeData: 
+    file_cachedStartup: {fileID: 0}
+    data_cachedStartup: 
+    cacheStartup: 0
+  showNavGraphs: 1
+  showUnwalkableNodes: 1
+  debugMode: 0
+  debugFloor: 0
+  debugRoof: 1
+  manualDebugFloorRoof: 0
+  showSearchTree: 0
+  unwalkableNodeDebugSize: 0.3
+  logPathResults: 1
+  maxNearestNodeDistance: 100
+  scanOnStartup: 1
+  fullGetNearestSearch: 0
+  prioritizeGraphs: 0
+  prioritizeGraphsLimit: 1
+  colorSettings:
+    _SolidColor: {r: 0.11764706, g: 0.4, b: 0.7882353, a: 0.9}
+    _UnwalkableNode: {r: 1, g: 0, b: 0, a: 0.5}
+    _BoundsHandles: {r: 0.29, g: 0.454, b: 0.741, a: 0.9}
+    _ConnectionLowLerp: {r: 0, g: 1, b: 0, a: 0.5}
+    _ConnectionHighLerp: {r: 1, g: 0, b: 0, a: 0.5}
+    _MeshEdgeColor: {r: 0, g: 0, b: 0, a: 0.5}
+    _AreaColors:
+    - {r: 0, g: 0, b: 0, a: 0}
+  tagNames: []
+  heuristic: 2
+  heuristicScale: 1
+  threadCount: 1
+  maxFrameTime: 1
+  batchGraphUpdates: 0
+  graphUpdateBatchingInterval: 0.2
+  euclideanEmbedding:
+    mode: 0
+    seed: 0
+    pivotPointRoot: {fileID: 0}
+    spreadOutCount: 1
+  showGraphs: 1
+--- !u!4 &1065713937
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1065713935}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1079334547
 GameObject:
   m_ObjectHideFlags: 0
@@ -22524,15 +22607,11 @@ Tilemap:
     m_Data: {fileID: 11400000, guid: c22b871fcb05d9b4894d7ed21e5f7da7, type: 2}
   - m_RefCount: 39
     m_Data: {fileID: 11400000, guid: 99217616d23ce5942b8c595e2456363f, type: 2}
-  - m_RefCount: 0
-    m_Data: {fileID: 0}
   m_TileSpriteArray:
   - m_RefCount: 631
     m_Data: {fileID: -996698499, guid: 09366b41bf8af3842a589440aef2995d, type: 3}
   - m_RefCount: 39
     m_Data: {fileID: -6954361104842077747, guid: 09366b41bf8af3842a589440aef2995d, type: 3}
-  - m_RefCount: 0
-    m_Data: {fileID: 0}
   m_TileMatrixArray:
   - m_RefCount: 670
     m_Data:
@@ -22614,7 +22693,7 @@ CompositeCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_GeometryType: 0
+  m_GeometryType: 1
   m_GenerationType: 0
   m_EdgeRadius: 0
   m_ColliderPaths:
@@ -25188,6 +25267,7 @@ GameObject:
   - component: {fileID: 1559354872}
   - component: {fileID: 1559354871}
   - component: {fileID: 1559354870}
+  - component: {fileID: 1559354873}
   m_Layer: 12
   m_Name: Umia
   m_TagString: Player
@@ -25297,9 +25377,10 @@ MonoBehaviour:
   speed: 6
   waypointArrivalDist: 0.3
   waypointTimeout: 3
-  wanderRadius: 8
-  stuckSpeedThreshold: 0.3
-  stuckDuration: 0.6
+  wanderRetryTimeout: 15
+  repathInterval: 0.5
+  cellSize: 2
+  directionInertiaWeight: 0.5
   visionRadius: 5
   wallMask:
     serializedVersion: 2
@@ -25380,6 +25461,34 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 4
+--- !u!114 &1559354873
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1559354866}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 373b52eb9bf8c40f785bb6947a1aee66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: AstarPathfindingProject::Pathfinding.Seeker
+  version: 1
+  drawGizmos: 1
+  detailedGizmos: 0
+  startEndModifier:
+    addPoints: 0
+    exactStartPoint: 3
+    exactEndPoint: 3
+    useRaycasting: 0
+    mask:
+      serializedVersion: 2
+      m_Bits: 4294967295
+    useGraphRaycasting: 0
+  traversableTags: -1
+  tagPenalties: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  graphMask:
+    value: -1
 --- !u!1 &1613013330
 GameObject:
   m_ObjectHideFlags: 0
@@ -26154,8 +26263,8 @@ Tilemap:
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Origin: {x: -81, y: 0, z: 0}
-  m_Size: {x: 159, y: 35, z: 1}
+  m_Origin: {x: -81, y: 3, z: 0}
+  m_Size: {x: 159, y: 32, z: 1}
   m_TileAnchor: {x: 0.5, y: 0.5, z: 0}
   m_TileOrientation: 0
   m_TileOrientationMatrix:
@@ -27508,3 +27617,4 @@ SceneRoots:
   - {fileID: 519420032}
   - {fileID: 619394802}
   - {fileID: 6792830}
+  - {fileID: 1065713937}

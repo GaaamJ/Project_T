@@ -2,15 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using Pathfinding;
 using ProjectT.Thread;
 // 네임스페이스와 클래스 이름이 동일(ProjectT.Coordinate.Coordinate)해 CS0118 회피를 위해 alias 사용.
 using Coord = ProjectT.Coordinate.Coordinate;
+// System.IO.Path 와 Pathfinding.Path 가 둘 다 in-scope 이므로 A* Path 를 명시적 alias로 고정.
+using AstarPathType = Pathfinding.Path;
 
 namespace ProjectT.NPC
 {
     // Umia AI. 상태: Explore(배회) → SeekYarn(실타래 수집) → SeekCoordinate(좌표 바인드).
     // 맵 지식(스폰 위치·좌표 위치)은 시야 + 벽 Linecast로 발견하며 JSON으로 영구 저장.
+    // 이동은 A* Pathfinding Project 기반. Frontier Exploration으로 미방문 셀을 향해 자연스럽게 확산.
     [RequireComponent(typeof(Rigidbody2D))]
+    [RequireComponent(typeof(Seeker))]
     public class UmiaBrain : MonoBehaviour
     {
         // ── 인스펙터 ─────────────────────────────────────────────────────
@@ -18,14 +23,18 @@ namespace ProjectT.NPC
         [SerializeField] float speed = 6f;
         [SerializeField] float waypointArrivalDist = 0.4f;
         [SerializeField] float waypointTimeout = 4f;
-        // 전역 랜덤 좌표 대신 현재 위치 기준 짧은 반경으로 wander — 벽 직진 방지 + 자연스러운 탐색.
-        [SerializeField] float wanderRadius = 8f;
         // 알려진 스폰포인트를 모두 돌았을 때, 이 시간(초) 탐험 후 재방문 허용.
         [SerializeField] float wanderRetryTimeout = 15f;
 
-        [Header("Stuck 감지")]
-        [SerializeField] float stuckSpeedThreshold = 0.3f;
-        [SerializeField] float stuckDuration = 0.6f;
+        [Header("경로 추종")]
+        // 목적지 도달 여부와 무관하게 이 주기로 경로 재계산 — 동적 장애물/타겟 이동 대응.
+        [SerializeField] float repathInterval = 0.5f;
+
+        [Header("Frontier 탐색")]
+        // 그리드 해상도. 시야반경/맵 크기 대비 너무 작으면 후보 폭발, 너무 크면 탐색 거침.
+        [SerializeField] float cellSize = 2f;
+        // 이전 이동 방향과 일치하는 frontier에 얼마나 가중치를 더 줄지 — 지그재그 억제.
+        [SerializeField] float directionInertiaWeight = 0.5f;
 
         [Header("시야")]
         [SerializeField] float visionRadius = 5f;
@@ -43,13 +52,24 @@ namespace ProjectT.NPC
         State state = State.Explore;
 
         Rigidbody2D rb;
+        Seeker seeker;
         Vector2 currentWaypoint;
         float waypointTimer;
-        float stuckTimer;
         float wanderTimer;
 
         // 이번 SeekYarn 사이클에서 이미 방문한 스폰포인트 인덱스 — 반복 방지.
         readonly HashSet<int> triedSpawnIndices = new HashSet<int>();
+
+        // ── 경로 상태 ─────────────────────────────────────────────────────
+        AstarPathType currentPath;
+        int pathNodeIdx;
+        float repathTimer;
+        bool pathPending;
+
+        // ── Frontier 상태 ─────────────────────────────────────────────────
+        // Dictionary인 이유: HashSet도 되지만 향후 셀별 메타(마지막 방문시각 등) 확장 여지 남김.
+        readonly Dictionary<Vector2Int, bool> visitedCells = new Dictionary<Vector2Int, bool>();
+        Vector2 lastMoveDir;
 
         // ── 맵 지식 ───────────────────────────────────────────────────────
         List<Vector2> knownSpawnPoints = new List<Vector2>();
@@ -64,15 +84,81 @@ namespace ProjectT.NPC
         void Awake()
         {
             rb = GetComponent<Rigidbody2D>();
-            savePath = Path.Combine(Application.persistentDataPath, "umia_knowledge.json");
+            seeker = GetComponent<Seeker>();
+            // Path 심볼이 Pathfinding.Path와 System.IO.Path 두 곳에 존재 — 명시적으로 System.IO.Path 사용.
+            savePath = System.IO.Path.Combine(Application.persistentDataPath, "umia_knowledge.json");
             LoadKnowledge();
-            PickWanderWaypoint();
+
+            // GridGraph의 erodeIterations를 강제로 세팅.
+            // 이유: Umia 콜라이더가 벽에 붙은 노드를 경로로 잡으면 콜라이더가 벽에 걸려 이동이 정지된다.
+            // erode=1로 벽에서 1노드 여유를 확보하면 경로가 벽에서 자연스럽게 떨어져 이동이 매끄러워진다.
+            // Runtime에 재스캔이 필요한 이유: 씬 저장된 GridGraph에는 erode=0으로 남아있을 수 있고,
+            // 에디터 도메인 리로드 방식으로는 안정적으로 세팅되지 않는 케이스가 있어 Play 시작 시 확실히 반영.
+            EnsureGridErosion();
+        }
+
+        void EnsureGridErosion()
+        {
+            const int targetErode = 1;
+            var astar = AstarPath.active;
+            if (astar == null || astar.data == null) return;
+            var graph = astar.data.gridGraph;
+            if (graph == null) return;
+            if (graph.erodeIterations != targetErode)
+            {
+                int before = graph.erodeIterations;
+                graph.erodeIterations = targetErode;
+                astar.Scan();
+                Debug.Log($"[UmiaBrain] GridGraph erodeIterations {before} -> {targetErode}, rescanned.");
+            }
+            PostProcessWalkability(graph);
+        }
+
+        // A* 스캔 후 보정: Floor/텔레포터 타일이 없는 노드를 nonwalkable로 마킹.
+        // A* 그리드는 직사각형이라 맵 바깥 void 영역도 walkable로 잡힌다 — 이를 타일맵 기준으로 보정.
+        void PostProcessWalkability(Pathfinding.GridGraph graph)
+        {
+            UnityEngine.Tilemaps.Tilemap floorMap = null, teleportMap = null;
+            foreach (var tm in FindObjectsByType<UnityEngine.Tilemaps.Tilemap>(FindObjectsSortMode.None))
+            {
+                if (tm.gameObject.name == "Floor") floorMap = tm;
+                else if (tm.gameObject.name == "Teleport Shadow") teleportMap = tm;
+            }
+            if (floorMap == null) { Debug.LogWarning("[UmiaBrain] Floor tilemap not found — walkability post-process skipped."); return; }
+
+            int fixed_ = 0;
+            for (int z = 0; z < graph.depth; z++)
+                for (int x = 0; x < graph.width; x++)
+                {
+                    var node = graph.GetNode(x, z) as Pathfinding.GridNode;
+                    if (node == null || !node.Walkable) continue;
+                    Vector3 worldPos = (Vector3)node.position;
+                    Vector3Int cell = floorMap.WorldToCell(worldPos);
+                    bool onFloor = floorMap.HasTile(cell);
+                    bool onTeleport = teleportMap != null && teleportMap.HasTile(cell);
+                    if (!onFloor && !onTeleport) { node.Walkable = false; fixed_++; }
+                }
+            Debug.Log($"[UmiaBrain] PostProcessWalkability: {fixed_} void nodes → nonwalkable.");
+        }
+
+        void Start()
+        {
+            // AstarPath Scan 완료 이후에 첫 경로 요청을 시작하기 위해 Start에서 초기화.
+            MarkVisited(rb.position);
+            PickFrontierWaypoint();
         }
 
         void FixedUpdate()
         {
+            MarkVisited(rb.position);
             ScanVision();
-            CheckStuck();
+
+            repathTimer += Time.fixedDeltaTime;
+            if (!pathPending && repathTimer >= repathInterval)
+            {
+                repathTimer = 0f;
+                RequestPath(currentWaypoint);
+            }
 
             switch (state)
             {
@@ -82,25 +168,11 @@ namespace ProjectT.NPC
             }
         }
 
-        // ── Stuck 감지 ────────────────────────────────────────────────────
-        // 벽에 막혀 속도가 threshold 미만으로 떨어지면 카운트. stuckDuration 초 지속되면 새 waypoint.
-        void CheckStuck()
-        {
-            if (rb.linearVelocity.magnitude < stuckSpeedThreshold)
-                stuckTimer += Time.fixedDeltaTime;
-            else
-                stuckTimer = 0f;
-
-            if (stuckTimer >= stuckDuration)
-            {
-                stuckTimer = 0f;
-                PickWanderWaypoint();
-            }
-        }
-
         // ── 시야 스캔 ─────────────────────────────────────────────────────
         void ScanVision()
         {
+            MarkVisionCells();
+
             // 풀네임: Yarn Spinner 패키지가 최상위 Yarn 네임스페이스를 점유해 CS0118 회피.
             var yarns = FindObjectsByType<ProjectT.Thread.Yarn>(FindObjectsSortMode.None);
             foreach (var yarn in yarns)
@@ -116,12 +188,12 @@ namespace ProjectT.NPC
         // ── Explore ───────────────────────────────────────────────────────
         void DoExplore()
         {
-            MoveToward(currentWaypoint);
+            FollowCurrentPath();
             waypointTimer += Time.fixedDeltaTime;
             wanderTimer += Time.fixedDeltaTime;
 
             if (ReachedWaypoint() || TimedOut())
-                PickWanderWaypoint();
+                PickFrontierWaypoint();
 
             // 방문 안 한 스폰포인트가 있으면 즉시 수거 시도.
             if (!buffHolder.HasBuff && HasUntriedSpawnPoint())
@@ -145,7 +217,7 @@ namespace ProjectT.NPC
                 return;
             }
 
-            MoveToward(currentWaypoint);
+            FollowCurrentPath();
             waypointTimer += Time.fixedDeltaTime;
 
             // 시야 내 실타래 감지 → 접근 후 수집
@@ -159,7 +231,11 @@ namespace ProjectT.NPC
                     triedSpawnIndices.Clear();
                     return;
                 }
-                SetWaypoint(yarn.transform.position);
+                // 매 프레임 SetWaypoint를 호출하면 currentPath가 계속 null로 리셋되어
+                // Umia가 경로를 받자마자 다시 멈추는 지지직 현상이 생긴다.
+                // 목표 위치가 크게 바뀔 때만 경로 재요청.
+                if (Vector2.Distance(currentWaypoint, (Vector2)yarn.transform.position) > 0.5f)
+                    SetWaypoint(yarn.transform.position);
                 return;
             }
 
@@ -183,7 +259,7 @@ namespace ProjectT.NPC
         {
             if (!buffHolder.HasBuff) { EnterState(State.SeekYarn); return; }
 
-            MoveToward(currentWaypoint);
+            FollowCurrentPath();
             waypointTimer += Time.fixedDeltaTime;
 
             var coord = FindVisibleInactiveCoord();
@@ -195,7 +271,8 @@ namespace ProjectT.NPC
                     coord.TryBind(buffHolder);
                     return;
                 }
-                SetWaypoint(coord.transform.position);
+                if (Vector2.Distance(currentWaypoint, (Vector2)coord.transform.position) > 0.5f)
+                    SetWaypoint(coord.transform.position);
                 return;
             }
 
@@ -211,7 +288,7 @@ namespace ProjectT.NPC
             {
                 case State.Explore:
                     wanderTimer = 0f;
-                    PickWanderWaypoint();
+                    PickFrontierWaypoint();
                     break;
                 case State.SeekYarn:
                     if (!PickUntriedSpawnWaypoint()) state = State.Explore;
@@ -264,13 +341,6 @@ namespace ProjectT.NPC
         }
 
         // ── 웨이포인트 선택 ───────────────────────────────────────────────
-        // 현재 위치 기준 짧은 반경 내 랜덤 좌표 — 벽 직진 방지, 자연스러운 배회.
-        void PickWanderWaypoint()
-        {
-            Vector2 offset = UnityEngine.Random.insideUnitCircle * wanderRadius;
-            SetWaypoint(rb != null ? rb.position + offset : (Vector2)transform.position + offset);
-        }
-
         // 방문 안 한 스폰포인트 중 랜덤 선택 (항상 최선 아님).
         bool PickUntriedSpawnWaypoint()
         {
@@ -312,11 +382,167 @@ namespace ProjectT.NPC
             return true;
         }
 
-        void SetWaypoint(Vector2 pos) { currentWaypoint = pos; waypointTimer = 0f; }
+        // 웨이포인트 갱신 시 기존 경로 무효화 후 즉시 재요청 — repath 대기 지연 제거.
+        void SetWaypoint(Vector2 pos)
+        {
+            currentWaypoint = pos;
+            waypointTimer = 0f;
+            currentPath = null;
+            RequestPath(pos);
+        }
 
-        // ── 이동 / 판정 ───────────────────────────────────────────────────
-        void MoveToward(Vector2 target) => rb.linearVelocity = (target - rb.position).normalized * speed;
-        bool ReachedWaypoint() => Vector2.Distance(rb.position, currentWaypoint) < waypointArrivalDist;
+        // ── A* 경로 요청/추종 ─────────────────────────────────────────────
+        void RequestPath(Vector2 target)
+        {
+            if (seeker == null || pathPending) return;
+            pathPending = true;
+            seeker.StartPath(rb.position, target, OnPathComplete);
+        }
+
+        void OnPathComplete(AstarPathType p)
+        {
+            pathPending = false;
+            if (p.error)
+            {
+                // A*가 도달 불가/그래프 밖 등의 이유로 실패 — 다른 frontier로 즉시 재시도.
+                PickFrontierWaypoint();
+                return;
+            }
+            currentPath = p;
+            pathNodeIdx = 0;
+        }
+
+        void FollowCurrentPath()
+        {
+            if (currentPath == null || pathNodeIdx >= currentPath.vectorPath.Count)
+            {
+                rb.linearVelocity = Vector2.zero;
+                return;
+            }
+            Vector2 next = currentPath.vectorPath[pathNodeIdx];
+            Vector2 dir = (next - rb.position).normalized;
+            rb.linearVelocity = dir * speed;
+            lastMoveDir = dir;
+
+            if (Vector2.Distance(rb.position, next) < waypointArrivalDist)
+                pathNodeIdx++;
+        }
+
+        // ── Frontier Exploration ──────────────────────────────────────────
+        Vector2Int WorldToCell(Vector2 p) => new Vector2Int(
+            Mathf.FloorToInt(p.x / cellSize),
+            Mathf.FloorToInt(p.y / cellSize)
+        );
+
+        Vector2 CellCenter(Vector2Int c) => new Vector2((c.x + 0.5f) * cellSize, (c.y + 0.5f) * cellSize);
+
+        void MarkVisited(Vector2 pos) => visitedCells[WorldToCell(pos)] = true;
+
+        // 시야 반경 내의 모든 셀 중, 실제로 벽에 가리지 않고 보이는 셀을 방문 처리.
+        // "이동으로 지나간 셀"뿐 아니라 "시야로 확인한 셀"까지 포함해야 frontier가 벽 뒤로 새지 않음.
+        void MarkVisionCells()
+        {
+            var center = WorldToCell(rb.position);
+            int r = Mathf.CeilToInt(visionRadius / cellSize) + 1;
+            for (int dx = -r; dx <= r; dx++)
+                for (int dy = -r; dy <= r; dy++)
+                {
+                    var cell = new Vector2Int(center.x + dx, center.y + dy);
+                    if (visitedCells.ContainsKey(cell)) continue;
+                    Vector2 cellCenter = CellCenter(cell);
+                    // walkable 체크: void/맵 외곽 셀이 시야에 걸리지 않아도 방문으로 마킹되면
+                    // 그 이웃이 frontier가 되어 맵 바깥을 목적지로 잡게 됨.
+                    if (CanSee(cellCenter) && IsAstarWalkable(cellCenter))
+                        visitedCells[cell] = true;
+                }
+        }
+
+        // A* 그래프에서 해당 월드 좌표에 해당하는 노드가 walkable한지 검사.
+        // NNConstraint.Default는 "가장 가까운 walkable 노드"를 반환하므로 벽/맵 외곽 좌표도
+        // 옆의 walkable 노드를 찾아 true를 반환한다 — 체크가 무용지물이 되는 버그.
+        // NNConstraint.None으로 실제 최근접 노드(nonwalkable 포함)를 얻고,
+        // 거리 임계값으로 그래프 밖 위치(경계 노드가 반환됨)를 추가로 걸러낸다.
+        bool IsAstarWalkable(Vector2 worldPos)
+        {
+            if (AstarPath.active == null) return true;
+            var graph = AstarPath.active.data.gridGraph;
+            if (graph == null) return true;
+            var nearest = AstarPath.active.GetNearest(worldPos, NNConstraint.None);
+            if (nearest.node == null) return false;
+            // 그래프 밖 위치는 경계 노드를 반환 — 노드 중심까지 거리가 nodeSize*1.5 초과면 범위 밖으로 판정.
+            if (Vector2.Distance((Vector2)(Vector3)nearest.position, worldPos) > graph.nodeSize * 1.5f) return false;
+            return nearest.node.Walkable;
+        }
+
+        // Frontier = "방문된 셀의 4방향 이웃 중 방문 안 된 셀".
+        // 후보를 거리 역수 + 진행방향 관성으로 가중치 두고 룰렛 샘플링 → 자연스러운 확산.
+        bool PickFrontierWaypoint()
+        {
+            var candidates = new List<(Vector2 pos, float weight)>();
+            var checkedCells = new HashSet<Vector2Int>();
+            // foreach 순회 중 visitedCells를 직접 수정하면 InvalidOperationException 발생.
+            // nonwalkable 셀 마킹은 순회 완료 후 일괄 적용.
+            var toMarkVisited = new List<Vector2Int>();
+
+            foreach (var kvp in visitedCells)
+            {
+                foreach (var d in new[] { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right })
+                {
+                    var neighbor = kvp.Key + d;
+                    if (visitedCells.ContainsKey(neighbor) || !checkedCells.Add(neighbor)) continue;
+
+                    Vector2 worldPos = CellCenter(neighbor);
+
+                    if (!IsAstarWalkable(worldPos))
+                    {
+                        toMarkVisited.Add(neighbor);
+                        continue;
+                    }
+
+                    float dist = Vector2.Distance(rb.position, worldPos);
+                    float w = 1f / (dist + 1f);
+
+                    if (lastMoveDir.sqrMagnitude > 0.01f)
+                    {
+                        Vector2 toF = (worldPos - rb.position).normalized;
+                        // Dot이 음수면 뒤로 가는 방향 — 관성 보너스는 0으로 클램프.
+                        w += Mathf.Max(0f, Vector2.Dot(lastMoveDir, toF)) * directionInertiaWeight;
+                    }
+                    candidates.Add((worldPos, w));
+                }
+            }
+
+            foreach (var cell in toMarkVisited)
+                visitedCells[cell] = true;
+
+            if (candidates.Count == 0)
+            {
+                // visitedCells가 비었거나 frontier 소진 — 주변 임의 위치로 fallback.
+                SetWaypoint(rb.position + UnityEngine.Random.insideUnitCircle * 5f);
+                return false;
+            }
+
+            float total = 0f;
+            foreach (var c in candidates) total += c.weight;
+            float pick = UnityEngine.Random.value * total;
+            float cum = 0f;
+            foreach (var c in candidates)
+            {
+                cum += c.weight;
+                if (pick <= cum) { SetWaypoint(c.pos); return true; }
+            }
+            SetWaypoint(candidates[candidates.Count - 1].pos);
+            return true;
+        }
+
+        // ── 도착/타임아웃 판정 ────────────────────────────────────────────
+        // 경로 노드 소진도 도착으로 간주 — 목표가 그래프 밖(예: 좌표 오브젝트 위)일 때 대비.
+        bool ReachedWaypoint()
+        {
+            return (currentPath != null && pathNodeIdx >= currentPath.vectorPath.Count)
+                || Vector2.Distance(rb.position, currentWaypoint) < waypointArrivalDist;
+        }
+
         bool TimedOut() => waypointTimer >= waypointTimeout;
 
         // ── 시야 판정 ─────────────────────────────────────────────────────
@@ -382,8 +608,6 @@ namespace ProjectT.NPC
             Gizmos.DrawWireSphere(transform.position, visionRadius);
             Gizmos.color = Color.cyan;
             Gizmos.DrawWireSphere(transform.position, interactRange);
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(transform.position, wanderRadius);
             if (Application.isPlaying)
             {
                 Gizmos.color = Color.magenta;
