@@ -575,11 +575,7 @@ namespace ProjectT.NPC
         }
 
         // 맵 구조 인식 탐색 메인 메서드.
-        // GetCardinalExits로 출구를 파악하고 온 방향 제외 후:
-        //   0개 → 막다른 길(1c): 돌아감
-        //   1개 → 외길(1a): 그쪽으로 계속
-        //   2개+ → 갈림길(1b): 미탐색 우선, yarn 방향 우선(1d), 랜덤 선택
-        // TraceInDirection으로 다음 갈림길·벽 직전까지 이동(1e).
+        // 우선순위: 막다른길 반환 > 시야내 yarn > 미지 텔레포터 > 미탐색 일반 > 기지 텔레포터/탐색완료
         bool PickExploreWaypoint()
         {
             // rb.position이 A* 그리드 노드 중심과 어긋나면 IsAstarWalkable이 erode된 인접 노드를
@@ -621,19 +617,19 @@ namespace ProjectT.NPC
                 return true;
             }
 
-            // 1d: 시야 내 yarn → 그 방향 우선.
+            // 1d: 시야 내 yarn — 출구 수와 무관하게 최우선.
             var yarn = FindVisibleYarn();
-            if (yarn != null && forwardExits.Count > 1)
+            if (yarn != null)
             {
                 Vector2 toYarn = ((Vector2)yarn.transform.position - pos).normalized;
-                Vector2 best = forwardExits[0];
-                float bestDot = Vector2.Dot(forwardExits[0], toYarn);
+                Vector2 yarnBest = forwardExits[0];
+                float yarnBestDot = Vector2.Dot(forwardExits[0], toYarn);
                 for (int i = 1; i < forwardExits.Count; i++)
                 {
                     float d = Vector2.Dot(forwardExits[i], toYarn);
-                    if (d > bestDot) { bestDot = d; best = forwardExits[i]; }
+                    if (d > yarnBestDot) { yarnBestDot = d; yarnBest = forwardExits[i]; }
                 }
-                if (bestDot > 0.3f) { SetWaypoint(TraceInDirection(pos, best)); return true; }
+                if (yarnBestDot > 0.3f) { SetWaypoint(TraceInDirection(pos, yarnBest)); return true; }
             }
 
             // 텔레포터 방향 분류: 목적지 방문 여부에 따라 known/unknown 구분.
@@ -653,38 +649,37 @@ namespace ProjectT.NPC
                 else normalFwd.Add(e);
             }
 
-            // 텔레포터가 유일한 경로인 경우 (Case 1, 2)
+            // 미지 텔레포터 — 다른 길 유무와 무관하게 strict 우선 (Case 2 + Case 4).
+            if (tpUnknown.Count > 0)
+            {
+                SetWaypoint(TraceInDirection(pos, tpUnknown[UnityEngine.Random.Range(0, tpUnknown.Count)]));
+                return true;
+            }
+
+            // 일반 출구 없이 기지 텔레포터만 남은 경우 (Case 1).
             if (normalFwd.Count == 0)
             {
-                if (tpUnknown.Count > 0)
+                if (cameFrom.sqrMagnitude > 0.01f && UnityEngine.Random.value < 0.5f)
                 {
-                    // Case 2: 목적지 모름 + 유일한 길 → 그냥 가 봄
-                    SetWaypoint(TraceInDirection(pos, tpUnknown[UnityEngine.Random.Range(0, tpUnknown.Count)]));
-                }
-                else if (cameFrom.sqrMagnitude > 0.01f && UnityEngine.Random.value < 0.5f)
-                {
-                    // Case 1: 목적지 앎 + 유일한 길 → 50%로 되돌아감
+                    // 50%로 되돌아감
                     Vector2 back = allExits[0]; float bestDot2 = Vector2.Dot(allExits[0], cameFrom);
                     for (int i = 1; i < allExits.Count; i++) { float d = Vector2.Dot(allExits[i], cameFrom); if (d > bestDot2) { bestDot2 = d; back = allExits[i]; } }
                     SetWaypoint(TraceInDirection(pos, back));
                 }
                 else
                 {
-                    // Case 1: 목적지 앎 + 유일한 길 → 50%로 통과
+                    // 50%로 통과
                     SetWaypoint(TraceInDirection(pos, tpKnown[UnityEngine.Random.Range(0, tpKnown.Count)]));
                 }
                 return true;
             }
 
-            // 일반 출구가 있는 경우 (Case 3, 4 + 1a/1b)
-            // 미탐색 풀: 일반 미방문 방향 + 목적지 모르는 텔레포터(Case 4 우선).
+            // 일반 출구 있음: 미탐색 방향 우선, 없으면 forwardExits 전체(Case 3: 기지 텔레포터 포함).
             var unexplored = new List<Vector2>(4);
             foreach (var e in normalFwd)
                 if (HasFrontierInDirection(pos, e)) unexplored.Add(e);
-            foreach (var e in tpUnknown) unexplored.Add(e); // Case 4
-            var pool = unexplored.Count > 0 ? unexplored : forwardExits; // Case 3: 알려진 텔레포터 포함 전체
+            var pool = unexplored.Count > 0 ? unexplored : forwardExits;
 
-            // 1a: 단일 출구 → 그쪽으로. 1b: 복수 출구 → 랜덤. 1e: 끝까지 추적해 waypoint 설정.
             SetWaypoint(TraceInDirection(pos, pool[UnityEngine.Random.Range(0, pool.Count)]));
             return true;
         }
