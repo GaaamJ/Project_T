@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectT.Thread;
+using ProjectT.UI;
 
 namespace ProjectT.Player
 {
@@ -20,6 +21,9 @@ namespace ProjectT.Player
         [SerializeField] ThreadBuffHolder buffHolder;
 
         InputSystem_Actions actions;
+        bool _isHolding;
+        float _holdStartTime;
+        InteractGauge _currentGauge;
 
         void Awake()
         {
@@ -29,12 +33,16 @@ namespace ProjectT.Player
         void OnEnable()
         {
             actions.Player.Enable();
+            actions.Player.Interact.started += OnInteractStarted;
             actions.Player.Interact.performed += OnInteractPerformed;
+            actions.Player.Interact.canceled += OnInteractCanceled;
         }
 
         void OnDisable()
         {
+            actions.Player.Interact.started -= OnInteractStarted;
             actions.Player.Interact.performed -= OnInteractPerformed;
+            actions.Player.Interact.canceled -= OnInteractCanceled;
             actions.Player.Disable();
         }
 
@@ -43,8 +51,29 @@ namespace ProjectT.Player
             actions?.Dispose();
         }
 
+        void Update()
+        {
+            if (!_isHolding || _currentGauge == null) return;
+            float holdDuration = InputSystem.settings.defaultHoldTime;
+            _currentGauge.SetProgress(Mathf.Clamp01((Time.time - _holdStartTime) / holdDuration));
+        }
+
+        void OnInteractStarted(InputAction.CallbackContext ctx)
+        {
+            var target = detectZone?.CurrentTarget;
+            if (target == null) return;
+            _isHolding = true;
+            _holdStartTime = Time.time;
+            _currentGauge = target.GetComponent<InteractGauge>();
+            _currentGauge?.Show();
+        }
+
         void OnInteractPerformed(InputAction.CallbackContext ctx)
         {
+            _currentGauge?.Hide();
+            _currentGauge = null;
+            _isHolding = false;
+
             if (detectZone == null)
             {
                 Debug.LogWarning("[PlayerInteract] detectZone 참조가 비어 있습니다.");
@@ -61,6 +90,13 @@ namespace ProjectT.Player
 
             bool result = target.TryBind(buffHolder);
             Debug.Log($"[PlayerInteract] Interact TryBind: {result}");
+        }
+
+        void OnInteractCanceled(InputAction.CallbackContext ctx)
+        {
+            _currentGauge?.Hide();
+            _currentGauge = null;
+            _isHolding = false;
         }
     }
 }
