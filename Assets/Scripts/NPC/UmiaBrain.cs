@@ -65,6 +65,8 @@ namespace ProjectT.NPC
         int pathNodeIdx;
         float repathTimer;
         bool pathPending;
+        // A* 실패 시 텔레포터 경유 중임을 표시 — 경유지 경로도 실패하면 폴백해 무한 루프 방지.
+        bool isRoutingViaTeleporter;
 
         // ── Frontier 상태 ─────────────────────────────────────────────────
         // Dictionary인 이유: HashSet도 되지만 향후 셀별 메타(마지막 방문시각 등) 확장 여지 남김.
@@ -298,6 +300,7 @@ namespace ProjectT.NPC
         // ── 상태 전환 ─────────────────────────────────────────────────────
         void EnterState(State next)
         {
+            isRoutingViaTeleporter = false;
             state = next;
             switch (next)
             {
@@ -419,12 +422,51 @@ namespace ProjectT.NPC
             pathPending = false;
             if (p.error)
             {
-                // A*가 도달 불가/그래프 밖 등의 이유로 실패 — 다른 frontier로 즉시 재시도.
-                PickFrontierWaypoint();
+                // Explore: frontier 폴백. SeekYarn/SeekCoordinate: 텔레포터 경유 시도.
+                // 경유지 경로도 실패하면(isRoutingViaTeleporter=true) 무한루프 방지 — Explore 전환.
+                if (state != State.Explore && !isRoutingViaTeleporter)
+                    TryRouteViaTeleporter(currentWaypoint);
+                else
+                {
+                    isRoutingViaTeleporter = false;
+                    PickExploreWaypoint();
+                }
                 return;
             }
+            isRoutingViaTeleporter = false;
             currentPath = p;
             pathNodeIdx = 0;
+        }
+
+        // 목적지에 가장 가까운 출구를 가진 텔레포터로 경유 경로 설정.
+        // 경유 성공 후 텔레포터 진입 시 OnTriggerEnter2D가 즉시 재탐색 트리거.
+        void TryRouteViaTeleporter(Vector2 target)
+        {
+            RoomTransitionTrigger best = null;
+            float bestScore = float.MaxValue;
+            foreach (var rtt in FindObjectsByType<RoomTransitionTrigger>(FindObjectsSortMode.None))
+            {
+                var dest = rtt.TargetPosition;
+                if (!dest.HasValue) continue;
+                float score = Vector2.Distance(dest.Value, target);
+                if (score < bestScore) { bestScore = score; best = rtt; }
+            }
+            if (best != null)
+            {
+                isRoutingViaTeleporter = true;
+                SetWaypoint((Vector2)best.transform.position);
+            }
+            else PickExploreWaypoint();
+        }
+
+        // 텔레포터 진입 감지 — 이동 후 즉시 새 위치 기준으로 웨이포인트 재평가.
+        void OnTriggerEnter2D(Collider2D other)
+        {
+            if (other.GetComponent<RoomTransitionTrigger>() == null) return;
+            isRoutingViaTeleporter = false;
+            currentPath = null;
+            pathPending = false;
+            waypointTimer = waypointTimeout; // 다음 FixedUpdate에서 즉시 재평가
         }
 
         void FollowCurrentPath()
