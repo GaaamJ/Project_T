@@ -25297,8 +25297,9 @@ MonoBehaviour:
   speed: 6
   waypointArrivalDist: 0.3
   waypointTimeout: 3
-  wanderMin: {x: -85, y: 0}
-  wanderMax: {x: 85, y: 40}
+  wanderRadius: 8
+  stuckSpeedThreshold: 0.3
+  stuckDuration: 0.6
   visionRadius: 5
   wallMask:
     serializedVersion: 2

@@ -17,9 +17,15 @@ namespace ProjectT.NPC
         [Header("이동")]
         [SerializeField] float speed = 6f;
         [SerializeField] float waypointArrivalDist = 0.4f;
-        [SerializeField] float waypointTimeout = 3f;
-        [SerializeField] Vector2 wanderMin = new Vector2(-50f, 0f);
-        [SerializeField] Vector2 wanderMax = new Vector2(50f, 40f);
+        [SerializeField] float waypointTimeout = 4f;
+        // 전역 랜덤 좌표 대신 현재 위치 기준 짧은 반경으로 wander — 벽 직진 방지 + 자연스러운 탐색.
+        [SerializeField] float wanderRadius = 8f;
+        // 알려진 스폰포인트를 모두 돌았을 때, 이 시간(초) 탐험 후 재방문 허용.
+        [SerializeField] float wanderRetryTimeout = 15f;
+
+        [Header("Stuck 감지")]
+        [SerializeField] float stuckSpeedThreshold = 0.3f;
+        [SerializeField] float stuckDuration = 0.6f;
 
         [Header("시야")]
         [SerializeField] float visionRadius = 5f;
@@ -39,6 +45,11 @@ namespace ProjectT.NPC
         Rigidbody2D rb;
         Vector2 currentWaypoint;
         float waypointTimer;
+        float stuckTimer;
+        float wanderTimer;
+
+        // 이번 SeekYarn 사이클에서 이미 방문한 스폰포인트 인덱스 — 반복 방지.
+        readonly HashSet<int> triedSpawnIndices = new HashSet<int>();
 
         // ── 맵 지식 ───────────────────────────────────────────────────────
         List<Vector2> knownSpawnPoints = new List<Vector2>();
@@ -61,12 +72,29 @@ namespace ProjectT.NPC
         void FixedUpdate()
         {
             ScanVision();
+            CheckStuck();
 
             switch (state)
             {
                 case State.Explore:        DoExplore();        break;
                 case State.SeekYarn:       DoSeekYarn();       break;
                 case State.SeekCoordinate: DoSeekCoordinate(); break;
+            }
+        }
+
+        // ── Stuck 감지 ────────────────────────────────────────────────────
+        // 벽에 막혀 속도가 threshold 미만으로 떨어지면 카운트. stuckDuration 초 지속되면 새 waypoint.
+        void CheckStuck()
+        {
+            if (rb.linearVelocity.magnitude < stuckSpeedThreshold)
+                stuckTimer += Time.fixedDeltaTime;
+            else
+                stuckTimer = 0f;
+
+            if (stuckTimer >= stuckDuration)
+            {
+                stuckTimer = 0f;
+                PickWanderWaypoint();
             }
         }
 
@@ -90,12 +118,18 @@ namespace ProjectT.NPC
         {
             MoveToward(currentWaypoint);
             waypointTimer += Time.fixedDeltaTime;
+            wanderTimer += Time.fixedDeltaTime;
 
             if (ReachedWaypoint() || TimedOut())
                 PickWanderWaypoint();
 
-            if (!buffHolder.HasBuff && knownSpawnPoints.Count > 0)
+            // 방문 안 한 스폰포인트가 있으면 즉시 수거 시도.
+            if (!buffHolder.HasBuff && HasUntriedSpawnPoint())
             { EnterState(State.SeekYarn); return; }
+
+            // 모든 스폰포인트를 돌았지만 yarn이 없었음 — wanderRetryTimeout 탐험 후 재방문.
+            if (!buffHolder.HasBuff && knownSpawnPoints.Count > 0 && wanderTimer >= wanderRetryTimeout)
+            { wanderTimer = 0f; triedSpawnIndices.Clear(); EnterState(State.SeekYarn); return; }
 
             if (buffHolder.HasBuff && HasKnownInactiveCoord())
             { EnterState(State.SeekCoordinate); return; }
@@ -104,11 +138,17 @@ namespace ProjectT.NPC
         // ── SeekYarn ──────────────────────────────────────────────────────
         void DoSeekYarn()
         {
-            if (buffHolder.HasBuff) { EnterState(State.SeekCoordinate); return; }
+            if (buffHolder.HasBuff)
+            {
+                triedSpawnIndices.Clear();
+                EnterState(State.SeekCoordinate);
+                return;
+            }
 
             MoveToward(currentWaypoint);
             waypointTimer += Time.fixedDeltaTime;
 
+            // 시야 내 실타래 감지 → 접근 후 수집
             var yarn = FindVisibleYarn();
             if (yarn != null)
             {
@@ -116,14 +156,26 @@ namespace ProjectT.NPC
                 if (d <= interactRange)
                 {
                     yarn.TakeHit(buffHolder);
+                    triedSpawnIndices.Clear();
                     return;
                 }
                 SetWaypoint(yarn.transform.position);
                 return;
             }
 
+            // 목적지 도착 또는 타임아웃 → 이 스폰포인트엔 yarn 없음, 다른 곳 시도
             if (ReachedWaypoint() || TimedOut())
-                if (!PickSpawnWaypoint()) EnterState(State.Explore);
+            {
+                // 방문한 것으로 기록 후 다른 스폰포인트 선택
+                MarkCurrentWaypointAsTried();
+                if (!PickUntriedSpawnWaypoint())
+                {
+                    // 알려진 스폰포인트를 모두 돌았는데 못 찾음 → 탐험하며 대기.
+                    // tried는 유지 — Explore 중 새 스폰포인트 발견 시 자동으로 SeekYarn 재진입.
+                    // wanderRetryTimeout 후 tried 초기화 및 재시도.
+                    EnterState(State.Explore);
+                }
+            }
         }
 
         // ── SeekCoordinate ────────────────────────────────────────────────
@@ -157,9 +209,16 @@ namespace ProjectT.NPC
             state = next;
             switch (next)
             {
-                case State.Explore:        PickWanderWaypoint(); break;
-                case State.SeekYarn:       if (!PickSpawnWaypoint()) state = State.Explore; break;
-                case State.SeekCoordinate: if (!PickCoordWaypoint()) state = State.Explore; break;
+                case State.Explore:
+                    wanderTimer = 0f;
+                    PickWanderWaypoint();
+                    break;
+                case State.SeekYarn:
+                    if (!PickUntriedSpawnWaypoint()) state = State.Explore;
+                    break;
+                case State.SeekCoordinate:
+                    if (!PickCoordWaypoint()) state = State.Explore;
+                    break;
             }
         }
 
@@ -184,6 +243,13 @@ namespace ProjectT.NPC
             return null;
         }
 
+        bool HasUntriedSpawnPoint()
+        {
+            for (int i = 0; i < knownSpawnPoints.Count; i++)
+                if (!triedSpawnIndices.Contains(i)) return true;
+            return false;
+        }
+
         bool HasKnownInactiveCoord()
         {
             Coord playerTarget = playerInteract != null ? playerInteract.CurrentInteractTarget : null;
@@ -197,12 +263,34 @@ namespace ProjectT.NPC
             return false;
         }
 
-        // ── 웨이포인트 선택 (랜덤 — 항상 최선 아님) ─────────────────────
-        bool PickSpawnWaypoint()
+        // ── 웨이포인트 선택 ───────────────────────────────────────────────
+        // 현재 위치 기준 짧은 반경 내 랜덤 좌표 — 벽 직진 방지, 자연스러운 배회.
+        void PickWanderWaypoint()
         {
-            if (knownSpawnPoints.Count == 0) return false;
-            SetWaypoint(knownSpawnPoints[UnityEngine.Random.Range(0, knownSpawnPoints.Count)]);
+            Vector2 offset = UnityEngine.Random.insideUnitCircle * wanderRadius;
+            SetWaypoint(rb != null ? rb.position + offset : (Vector2)transform.position + offset);
+        }
+
+        // 방문 안 한 스폰포인트 중 랜덤 선택 (항상 최선 아님).
+        bool PickUntriedSpawnWaypoint()
+        {
+            var untried = new List<int>();
+            for (int i = 0; i < knownSpawnPoints.Count; i++)
+                if (!triedSpawnIndices.Contains(i)) untried.Add(i);
+
+            if (untried.Count == 0) return false;
+
+            int idx = untried[UnityEngine.Random.Range(0, untried.Count)];
+            triedSpawnIndices.Add(idx);
+            SetWaypoint(knownSpawnPoints[idx]);
             return true;
+        }
+
+        void MarkCurrentWaypointAsTried()
+        {
+            for (int i = 0; i < knownSpawnPoints.Count; i++)
+                if (Vector2.Distance(knownSpawnPoints[i], currentWaypoint) < MergeRadius)
+                    triedSpawnIndices.Add(i);
         }
 
         bool PickCoordWaypoint()
@@ -223,10 +311,6 @@ namespace ProjectT.NPC
             SetWaypoint(candidates[UnityEngine.Random.Range(0, candidates.Count)]);
             return true;
         }
-
-        void PickWanderWaypoint() => SetWaypoint(new Vector2(
-            UnityEngine.Random.Range(wanderMin.x, wanderMax.x),
-            UnityEngine.Random.Range(wanderMin.y, wanderMax.y)));
 
         void SetWaypoint(Vector2 pos) { currentWaypoint = pos; waypointTimer = 0f; }
 
@@ -299,7 +383,7 @@ namespace ProjectT.NPC
             Gizmos.color = Color.cyan;
             Gizmos.DrawWireSphere(transform.position, interactRange);
             Gizmos.color = Color.green;
-            Gizmos.DrawWireCube((wanderMin + wanderMax) * 0.5f, wanderMax - wanderMin);
+            Gizmos.DrawWireSphere(transform.position, wanderRadius);
             if (Application.isPlaying)
             {
                 Gizmos.color = Color.magenta;
