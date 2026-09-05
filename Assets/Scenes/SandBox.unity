@@ -25375,14 +25375,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9df507b454586694fa08a728d22e2e53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectT.NPC.UmiaBrain
-  speed: 6
+  speed: 3.5
   waypointArrivalDist: 0.3
   waypointTimeout: 3
   wanderRetryTimeout: 15
   repathInterval: 0.5
   cellSize: 2
   directionInertiaWeight: 0.5
-  visionRadius: 15
+  visionRadius: 6
   wallMask:
     serializedVersion: 2
     m_Bits: 2048

@@ -267,7 +267,9 @@ namespace ProjectT.NPC
         // ── 시야 스캔 ─────────────────────────────────────────────────────
         void ScanVision()
         {
-            MarkVisionCells();
+            // MarkVisionCells 제거: visionRadius 반경 전체를 visited 처리하면
+            // 실제로 탐색하지 않은 셀도 포화 → 같은 곳 반복 현상의 원인.
+            // FixedUpdate의 MarkVisited(rb.position)만으로 실제 이동 경로를 기록.
 
             foreach (var yarn in _yarnCache)
             {
@@ -478,11 +480,11 @@ namespace ProjectT.NPC
             return true;
         }
 
-        // 웨이포인트 갱신 시 즉시 새 경로 요청. 기존 경로는 새 경로 도착 전까지 유지해 순간 정지 방지.
         void SetWaypoint(Vector2 pos)
         {
             currentWaypoint = pos;
             waypointTimer = 0f;
+            currentPath = null;
             RequestPath(pos);
         }
 
@@ -588,7 +590,8 @@ namespace ProjectT.NPC
         {
             if (currentPath == null || pathNodeIdx >= currentPath.vectorPath.Count)
             {
-                rb.linearVelocity = Vector2.zero;
+                // 즉시 정지 대신 부드럽게 감속 — 경로 대기·완료 시 뚝 끊기는 느낌 방지.
+                rb.linearVelocity = Vector2.MoveTowards(rb.linearVelocity, Vector2.zero, speed * 4f * Time.fixedDeltaTime);
                 return;
             }
             Vector2 next = currentPath.vectorPath[pathNodeIdx];
