@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -10,9 +11,16 @@ public class RoomTransitionTrigger : MonoBehaviour
 
     public Vector2? TargetPosition => targetSpawnPoint != null ? (Vector2?)((Vector2)targetSpawnPoint.position) : null;
 
+    // 오브젝트별 마지막 텔레포트 시각 — 진입 즉시 exit 텔레포터로 재전송되는 핑퐁 방지.
+    static readonly Dictionary<Collider2D, float> lastTeleportTime = new Dictionary<Collider2D, float>();
+    const float TeleportCooldown = 0.5f;
+
     void OnTriggerEnter2D(Collider2D other)
     {
         if (!other.CompareTag("Player")) return;
+        float last;
+        if (lastTeleportTime.TryGetValue(other, out last) && Time.time - last < TeleportCooldown) return;
+        lastTeleportTime[other] = Time.time;
         other.transform.position = targetSpawnPoint.position;
     }
 }

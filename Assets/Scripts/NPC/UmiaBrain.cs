@@ -67,6 +67,10 @@ namespace ProjectT.NPC
         bool pathPending;
         // A* 실패 시 텔레포터 경유 중임을 표시 — 경유지 경로도 실패하면 폴백해 무한 루프 방지.
         bool isRoutingViaTeleporter;
+        // 방 진입 직후 exit RTT 즉시 재발동 방지.
+        float lastTeleportTime;
+        // 마지막으로 통과한 RTT — TryRouteViaTeleporter 핑퐁 방지에 사용.
+        RoomTransitionTrigger lastEnteredRTT;
 
         // ── Frontier 상태 ─────────────────────────────────────────────────
         // Dictionary인 이유: HashSet도 되지만 향후 셀별 메타(마지막 방문시각 등) 확장 여지 남김.
@@ -136,7 +140,8 @@ namespace ProjectT.NPC
 
             var triggers = FindObjectsByType<RoomTransitionTrigger>(FindObjectsSortMode.None);
 
-            int fixed_ = 0;
+            // 1패스: void(바닥/텔레포터 타일 없는) 노드를 nonwalkable로.
+            int voided = 0;
             for (int z = 0; z < graph.depth; z++)
                 for (int x = 0; x < graph.width; x++)
                 {
@@ -147,14 +152,44 @@ namespace ProjectT.NPC
                     bool onFloor = floorMap.HasTile(cell);
                     bool onTeleport = teleportMap != null && teleportMap.HasTile(cell);
                     if (onFloor || onTeleport) continue;
-                    // RoomTransitionTrigger 위치는 타일맵 누락이어도 walkable 유지
                     bool onTrigger = false;
                     foreach (var t in triggers)
                         if (Vector2.Distance((Vector2)worldPos, (Vector2)t.transform.position) < graph.nodeSize)
                         { onTrigger = true; break; }
-                    if (!onTrigger) { node.Walkable = false; fixed_++; }
+                    if (!onTrigger) { node.Walkable = false; voided++; }
                 }
-            Debug.Log($"[UmiaBrain] PostProcessWalkability: {fixed_} void nodes → nonwalkable.");
+
+            // 2패스: erodeIterations=1이 텔레포터 타일 노드를 nonwalkable로 만들 수 있음.
+            // 텔레포터는 Umia가 반드시 진입할 수 있어야 하므로 walkable 복원.
+            // RTT TargetPosition(스폰 포인트) 근처 노드도 함께 복원 — 진입 후 "no neighbours" 방지.
+            int restored = 0;
+            var restoredCells = new List<(int x, int z)>();
+            for (int z = 0; z < graph.depth; z++)
+                for (int x = 0; x < graph.width; x++)
+                {
+                    var node = graph.GetNode(x, z) as Pathfinding.GridNode;
+                    if (node == null || node.Walkable) continue;
+                    Vector3 worldPos = (Vector3)node.position;
+                    Vector3Int cell = floorMap.WorldToCell(worldPos);
+                    bool onTeleport = teleportMap != null && teleportMap.HasTile(cell);
+                    bool onTrigger = false;
+                    if (!onTeleport)
+                        foreach (var t in triggers)
+                        {
+                            if (Vector2.Distance((Vector2)worldPos, (Vector2)t.transform.position) < graph.nodeSize * 3f)
+                            { onTrigger = true; break; }
+                            var tDest = t.TargetPosition;
+                            if (tDest.HasValue && Vector2.Distance((Vector2)worldPos, tDest.Value) < graph.nodeSize * 3f)
+                            { onTrigger = true; break; }
+                        }
+                    if (onTeleport || onTrigger) { node.Walkable = true; restored++; restoredCells.Add((x, z)); }
+                }
+
+            // 복원된 노드의 connections 재계산 — node.Walkable만 바꾸면 erode로 제거된 연결이 복원되지 않음.
+            foreach (var (cx, cz) in restoredCells)
+                graph.CalculateConnectionsForCellAndNeighbours(cx, cz);
+
+            Debug.Log($"[UmiaBrain] PostProcessWalkability: {voided} void → nonwalkable, {restored} teleporter nodes restored.");
         }
 
         void Start()
@@ -169,6 +204,7 @@ namespace ProjectT.NPC
         {
             MarkVisited(rb.position);
             ScanVision();
+            CheckForceRTTEntry();
 
             repathTimer += Time.fixedDeltaTime;
             if (!pathPending && repathTimer >= repathInterval)
@@ -182,6 +218,32 @@ namespace ProjectT.NPC
                 case State.Explore:        DoExplore();        break;
                 case State.SeekYarn:       DoSeekYarn();       break;
                 case State.SeekCoordinate: DoSeekCoordinate(); break;
+            }
+        }
+
+        // 물리 트리거 미발동 대비 — RTT까지 1.5 unit 이내면 직접 텔레포트.
+        // A* 경로가 RTT 트리거 경계 직전에서 종료될 때 생기는 무한 고착 방지.
+        // lastEnteredRTT만 제외 — 방금 나온 문으로 즉시 되돌아가는 핑퐁 방지.
+        void CheckForceRTTEntry()
+        {
+            if (Time.time - lastTeleportTime < 0.8f) return;
+            foreach (var rtt in FindObjectsByType<RoomTransitionTrigger>(FindObjectsSortMode.None))
+            {
+                if (rtt == lastEnteredRTT) continue;
+                var dest = rtt.TargetPosition;
+                if (!dest.HasValue) continue;
+                if (Vector2.Distance(rb.position, (Vector2)rtt.transform.position) < 1.5f)
+                {
+                    lastTeleportTime = Time.time;
+                    lastEnteredRTT = rtt;
+                    rb.position = dest.Value;
+                    MarkVisited(dest.Value);
+                    isRoutingViaTeleporter = false;
+                    currentPath = null;
+                    pathPending = false;
+                    waypointTimer = waypointTimeout;
+                    return;
+                }
             }
         }
 
@@ -414,7 +476,16 @@ namespace ProjectT.NPC
         {
             if (seeker == null || pathPending) return;
             pathPending = true;
-            seeker.StartPath(rb.position, target, OnPathComplete);
+            // rb.position이 erode된 고립 노드 위에 있으면 "no neighbours" 오류 발생.
+            // 가장 가까운 walkable 노드 중심으로 스냅해 방지.
+            Vector2 startPos = rb.position;
+            if (AstarPath.active != null)
+            {
+                var snapNode = AstarPath.active.GetNearest(startPos, NNConstraint.None);
+                if (snapNode.node != null && snapNode.node.Walkable)
+                    startPos = (Vector2)(Vector3)snapNode.node.position;
+            }
+            seeker.StartPath(startPos, target, OnPathComplete);
         }
 
         void OnPathComplete(AstarPathType p)
@@ -424,7 +495,7 @@ namespace ProjectT.NPC
             {
                 // Explore: frontier 폴백. SeekYarn/SeekCoordinate: 텔레포터 경유 시도.
                 // 경유지 경로도 실패하면(isRoutingViaTeleporter=true) 무한루프 방지 — Explore 전환.
-                if (state != State.Explore && !isRoutingViaTeleporter)
+                if (!isRoutingViaTeleporter)
                     TryRouteViaTeleporter(currentWaypoint);
                 else
                 {
@@ -442,13 +513,19 @@ namespace ProjectT.NPC
         // 경유 성공 후 텔레포터 진입 시 OnTriggerEnter2D가 즉시 재탐색 트리거.
         void TryRouteViaTeleporter(Vector2 target)
         {
+            float distFromCurrent = Vector2.Distance((Vector2)rb.position, target);
+            float nodeSize = AstarPath.active?.data?.gridGraph?.nodeSize ?? 1f;
             RoomTransitionTrigger best = null;
             float bestScore = float.MaxValue;
             foreach (var rtt in FindObjectsByType<RoomTransitionTrigger>(FindObjectsSortMode.None))
             {
                 var dest = rtt.TargetPosition;
                 if (!dest.HasValue) continue;
+                // 목적지까지 현재보다 더 가까워져야 선택 — 핑퐁 방지.
                 float score = Vector2.Distance(dest.Value, target);
+                if (score >= distFromCurrent) continue;
+                // 방금 나온 RTT만 제외 — 거리 기반 제외 대신 실제 진입한 RTT 참조로 핑퐁 방지.
+                if (rtt == lastEnteredRTT) continue;
                 if (score < bestScore) { bestScore = score; best = rtt; }
             }
             if (best != null)
@@ -456,17 +533,42 @@ namespace ProjectT.NPC
                 isRoutingViaTeleporter = true;
                 SetWaypoint((Vector2)best.transform.position);
             }
-            else PickExploreWaypoint();
+            else
+            {
+                // 경유 경로도 없음 — target이 어떤 RTT의 문인지 찾아 그 목적지를 임시 visited 처리.
+                // 이렇게 해야 PickExploreWaypoint가 동일한 RTT를 다시 고르지 않는다.
+                foreach (var rtt in FindObjectsByType<RoomTransitionTrigger>(FindObjectsSortMode.None))
+                {
+                    var dest = rtt.TargetPosition;
+                    if (!dest.HasValue) continue;
+                    if (Vector2.Distance((Vector2)rtt.transform.position, target) < 0.5f)
+                    {
+                        visitedCells[WorldToCell(dest.Value)] = true;
+                        break;
+                    }
+                }
+                PickExploreWaypoint();
+            }
         }
 
-        // 텔레포터 진입 감지 — 이동 후 즉시 새 위치 기준으로 웨이포인트 재평가.
+        // 텔레포터 진입 감지 — Umia를 직접 이동시킨 뒤 새 위치 기준으로 웨이포인트 재평가.
+        // RoomTransitionTrigger.OnTriggerEnter2D는 Player 태그만 처리하므로 NPC인 Umia는 여기서 직접 텔레포트.
         void OnTriggerEnter2D(Collider2D other)
         {
-            if (other.GetComponent<RoomTransitionTrigger>() == null) return;
+            var rtt = other.GetComponent<RoomTransitionTrigger>();
+            if (rtt == null) return;
+            if (Time.time - lastTeleportTime < 0.8f) return;
+            lastTeleportTime = Time.time;
+            lastEnteredRTT = rtt;
+            var dest = rtt.TargetPosition;
+            if (dest.HasValue)
+            {
+                rb.position = dest.Value;
+            }
             isRoutingViaTeleporter = false;
             currentPath = null;
             pathPending = false;
-            waypointTimer = waypointTimeout; // 다음 FixedUpdate에서 즉시 재평가
+            waypointTimer = waypointTimeout;
         }
 
         void FollowCurrentPath()
@@ -630,6 +732,26 @@ namespace ProjectT.NPC
                     if (d > yarnBestDot) { yarnBestDot = d; yarnBest = forwardExits[i]; }
                 }
                 if (yarnBestDot > 0.3f) { SetWaypoint(TraceInDirection(pos, yarnBest)); return true; }
+            }
+
+            // 미지 텔레포터 목표 설정 — CanSee 없이 씬 전체 스캔.
+            // visionRadius 밖에 있어도 목적지가 미방문이면 최근접 RTT로 바로 이동.
+            {
+                RoomTransitionTrigger bestUnknownTP = null;
+                float bestTPDist = float.MaxValue;
+                foreach (var rtt in FindObjectsByType<RoomTransitionTrigger>(FindObjectsSortMode.None))
+                {
+                    var dest = rtt.TargetPosition;
+                    if (!dest.HasValue) continue;
+                    if (visitedCells.ContainsKey(WorldToCell(dest.Value))) continue;
+                    float d = Vector2.Distance(pos, (Vector2)rtt.transform.position);
+                    if (d < bestTPDist) { bestTPDist = d; bestUnknownTP = rtt; }
+                }
+                if (bestUnknownTP != null)
+                {
+                        SetWaypoint(bestUnknownTP.transform.position);
+                    return true;
+                }
             }
 
             // 텔레포터 방향 분류: 목적지 방문 여부에 따라 known/unknown 구분.
