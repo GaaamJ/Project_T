@@ -81,6 +81,13 @@ namespace ProjectT.NPC
         // 텔레포터 타일맵 캐시 — GetCardinalExits에서 시야 조건 체크에 사용.
         UnityEngine.Tilemaps.Tilemap teleportTilemap;
 
+        // ── 오브젝트 캐시 — FindObjectsByType은 매 FixedUpdate 호출 시 부하가 크므로 주기적으로 갱신.
+        RoomTransitionTrigger[] _rttCache   = System.Array.Empty<RoomTransitionTrigger>();
+        ProjectT.Thread.Yarn[]  _yarnCache  = System.Array.Empty<ProjectT.Thread.Yarn>();
+        Coord[]                 _coordCache = System.Array.Empty<Coord>();
+        float _lastCacheTime = -99f;
+        const float CacheInterval = 1f;
+
         // ── 맵 지식 ───────────────────────────────────────────────────────
         List<Vector2> knownSpawnPoints = new List<Vector2>();
         List<Vector2> knownCoordinates = new List<Vector2>();
@@ -195,13 +202,23 @@ namespace ProjectT.NPC
         void Start()
         {
             // AstarPath Scan 완료 이후에 첫 경로 요청을 시작하기 위해 Start에서 초기화.
+            RefreshCaches();
             MarkVisited(rb.position);
             prevDecisionPos = rb.position;
             PickExploreWaypoint();
         }
 
+        void RefreshCaches()
+        {
+            _rttCache   = FindObjectsByType<RoomTransitionTrigger>(FindObjectsSortMode.None);
+            _yarnCache  = FindObjectsByType<ProjectT.Thread.Yarn>(FindObjectsSortMode.None);
+            _coordCache = FindObjectsByType<Coord>(FindObjectsSortMode.None);
+            _lastCacheTime = Time.time;
+        }
+
         void FixedUpdate()
         {
+            if (Time.time - _lastCacheTime >= CacheInterval) RefreshCaches();
             MarkVisited(rb.position);
             ScanVision();
             CheckForceRTTEntry();
@@ -227,7 +244,7 @@ namespace ProjectT.NPC
         void CheckForceRTTEntry()
         {
             if (Time.time - lastTeleportTime < 0.8f) return;
-            foreach (var rtt in FindObjectsByType<RoomTransitionTrigger>(FindObjectsSortMode.None))
+            foreach (var rtt in _rttCache)
             {
                 if (rtt == lastEnteredRTT) continue;
                 var dest = rtt.TargetPosition;
@@ -252,16 +269,14 @@ namespace ProjectT.NPC
         {
             MarkVisionCells();
 
-            // 풀네임: Yarn Spinner 패키지가 최상위 Yarn 네임스페이스를 점유해 CS0118 회피.
-            var yarns = FindObjectsByType<ProjectT.Thread.Yarn>(FindObjectsSortMode.None);
-            foreach (var yarn in yarns)
-                if (CanSee(yarn.transform.position))
-                    AddSpawnPoint(yarn.transform.position);
+            foreach (var yarn in _yarnCache)
+            {
+                if (yarn == null) continue;
+                if (CanSee(yarn.transform.position)) AddSpawnPoint(yarn.transform.position);
+            }
 
-            var coords = FindObjectsByType<Coord>(FindObjectsSortMode.None);
-            foreach (var coord in coords)
-                if (CanSee(coord.transform.position))
-                    AddCoordinate(coord.transform.position);
+            foreach (var coord in _coordCache)
+                if (CanSee(coord.transform.position)) AddCoordinate(coord.transform.position);
         }
 
         // ── Explore ───────────────────────────────────────────────────────
@@ -318,18 +333,19 @@ namespace ProjectT.NPC
                 return;
             }
 
+            // 스폰 포인트가 시야에 들어왔는데 yarn이 없으면 즉시 포기 — 플레이어가 먼저 가져간 경우.
+            if (waypointTimer > 0.5f && CanSee(currentWaypoint))
+            {
+                MarkCurrentWaypointAsTried();
+                if (!PickUntriedSpawnWaypoint()) EnterState(State.Explore);
+                return;
+            }
+
             // 목적지 도착 또는 타임아웃 → 이 스폰포인트엔 yarn 없음, 다른 곳 시도
             if (ReachedWaypoint() || TimedOut())
             {
-                // 방문한 것으로 기록 후 다른 스폰포인트 선택
                 MarkCurrentWaypointAsTried();
-                if (!PickUntriedSpawnWaypoint())
-                {
-                    // 알려진 스폰포인트를 모두 돌았는데 못 찾음 → 탐험하며 대기.
-                    // tried는 유지 — Explore 중 새 스폰포인트 발견 시 자동으로 SeekYarn 재진입.
-                    // wanderRetryTimeout 후 tried 초기화 및 재시도.
-                    EnterState(State.Explore);
-                }
+                if (!PickUntriedSpawnWaypoint()) EnterState(State.Explore);
             }
         }
 
@@ -382,17 +398,18 @@ namespace ProjectT.NPC
         // ── 타겟 탐색 ─────────────────────────────────────────────────────
         ProjectT.Thread.Yarn FindVisibleYarn()
         {
-            var yarns = FindObjectsByType<ProjectT.Thread.Yarn>(FindObjectsSortMode.None);
-            foreach (var y in yarns)
+            foreach (var y in _yarnCache)
+            {
+                if (y == null) continue;
                 if (CanSee(y.transform.position)) return y;
+            }
             return null;
         }
 
         Coord FindVisibleInactiveCoord()
         {
             Coord playerTarget = playerInteract != null ? playerInteract.CurrentInteractTarget : null;
-            var coords = FindObjectsByType<Coord>(FindObjectsSortMode.None);
-            foreach (var c in coords)
+            foreach (var c in _coordCache)
             {
                 if (c.IsActive || c == playerTarget) continue;
                 if (CanSee(c.transform.position)) return c;
@@ -410,8 +427,7 @@ namespace ProjectT.NPC
         bool HasKnownInactiveCoord()
         {
             Coord playerTarget = playerInteract != null ? playerInteract.CurrentInteractTarget : null;
-            var coords = FindObjectsByType<Coord>(FindObjectsSortMode.None);
-            foreach (var c in coords)
+            foreach (var c in _coordCache)
             {
                 if (c.IsActive || c == playerTarget) continue;
                 foreach (var k in knownCoordinates)
@@ -462,12 +478,11 @@ namespace ProjectT.NPC
             return true;
         }
 
-        // 웨이포인트 갱신 시 기존 경로 무효화 후 즉시 재요청 — repath 대기 지연 제거.
+        // 웨이포인트 갱신 시 즉시 새 경로 요청. 기존 경로는 새 경로 도착 전까지 유지해 순간 정지 방지.
         void SetWaypoint(Vector2 pos)
         {
             currentWaypoint = pos;
             waypointTimer = 0f;
-            currentPath = null;
             RequestPath(pos);
         }
 
@@ -517,14 +532,12 @@ namespace ProjectT.NPC
             float nodeSize = AstarPath.active?.data?.gridGraph?.nodeSize ?? 1f;
             RoomTransitionTrigger best = null;
             float bestScore = float.MaxValue;
-            foreach (var rtt in FindObjectsByType<RoomTransitionTrigger>(FindObjectsSortMode.None))
+            foreach (var rtt in _rttCache)
             {
                 var dest = rtt.TargetPosition;
                 if (!dest.HasValue) continue;
-                // 목적지까지 현재보다 더 가까워져야 선택 — 핑퐁 방지.
                 float score = Vector2.Distance(dest.Value, target);
                 if (score >= distFromCurrent) continue;
-                // 방금 나온 RTT만 제외 — 거리 기반 제외 대신 실제 진입한 RTT 참조로 핑퐁 방지.
                 if (rtt == lastEnteredRTT) continue;
                 if (score < bestScore) { bestScore = score; best = rtt; }
             }
@@ -537,7 +550,7 @@ namespace ProjectT.NPC
             {
                 // 경유 경로도 없음 — target이 어떤 RTT의 문인지 찾아 그 목적지를 임시 visited 처리.
                 // 이렇게 해야 PickExploreWaypoint가 동일한 RTT를 다시 고르지 않는다.
-                foreach (var rtt in FindObjectsByType<RoomTransitionTrigger>(FindObjectsSortMode.None))
+                foreach (var rtt in _rttCache)
                 {
                     var dest = rtt.TargetPosition;
                     if (!dest.HasValue) continue;
@@ -739,7 +752,7 @@ namespace ProjectT.NPC
             {
                 RoomTransitionTrigger bestUnknownTP = null;
                 float bestTPDist = float.MaxValue;
-                foreach (var rtt in FindObjectsByType<RoomTransitionTrigger>(FindObjectsSortMode.None))
+                foreach (var rtt in _rttCache)
                 {
                     var dest = rtt.TargetPosition;
                     if (!dest.HasValue) continue;
@@ -812,7 +825,7 @@ namespace ProjectT.NPC
             float step = AstarPath.active?.data?.gridGraph?.nodeSize ?? 1f;
             RoomTransitionTrigger nearest = null;
             float nearestDist = step * 2f;
-            foreach (var rtt in FindObjectsByType<RoomTransitionTrigger>(FindObjectsSortMode.None))
+            foreach (var rtt in _rttCache)
             {
                 float d = Vector2.Distance((Vector2)rtt.transform.position, teleporterPos);
                 if (d < nearestDist) { nearestDist = d; nearest = rtt; }
