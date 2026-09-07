@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 
 namespace ProjectT.Umia
@@ -28,8 +27,9 @@ namespace ProjectT.Umia
         [Header("Follow (c-1)")]
         [SerializeField] float followDistance = 1.2f;      // 플레이어 뒤 거리
         [SerializeField] float smoothTime = 0.2f;          // 일반 따라오기 응답성
-        [SerializeField] float catchUpSmoothTime = 0.05f;  // B케이스 빠른 따라붙기
-        [SerializeField] float moveThreshold = 0.05f;      // 이 속도 미만이면 정지 취급
+        [SerializeField] float catchUpSmoothTime = 0.05f;       // B케이스 빠른 따라붙기
+        [SerializeField] float catchUpTriggerDistance = 3f;  // B케이스: 이 거리 이상 멀어지면 뛰어오기
+        [SerializeField] float moveThreshold = 0.05f;         // 이 속도 미만이면 정지 취급
 
         [Header("Idle / Wander")]
         [SerializeField] float idleDelay = 0.5f;           // 이 시간 이상 정지해야 Idle 진입
@@ -77,8 +77,23 @@ namespace ProjectT.Umia
         {
             if (player == null || _playerRb == null) return;
 
-            // B케이스 지연 중: 우미아 위치 그대로 유지 (뒤처지는 연출).
-            if (_frozen) return;
+            // B케이스 지연 중: 플레이어가 catchUpTriggerDistance 이상 멀어지면 뛰어오기 시작.
+            if (_frozen)
+            {
+                Vector2 followTarget = (Vector2)player.position + (-_lastMoveDir * followDistance);
+                if (Vector2.Distance((Vector2)transform.position, followTarget) >= catchUpTriggerDistance)
+                {
+                    _frozen = false;
+                    _currentSmoothTime = catchUpSmoothTime;
+                    _catchingUp = true;
+                    _velocity = Vector2.zero;
+                    Debug.Log("[UmiaFollow] B케이스: 뛰어오기 시작");
+                }
+                else
+                {
+                    return;
+                }
+            }
 
             Vector2 vel = _playerRb.linearVelocity;
             bool isMoving = vel.sqrMagnitude > moveThreshold * moveThreshold;
@@ -154,8 +169,9 @@ namespace ProjectT.Umia
             bool caseB = Random.value < 0.3f;
             if (caseB)
             {
-                Debug.Log("[UmiaFollow] MoveStart B (지연)");
-                StartCoroutine(CaseB());
+                Debug.Log("[UmiaFollow] MoveStart B (지연) — 3유닛 멀어지면 뛰어옴");
+                _frozen = true;
+                _velocity = Vector2.zero;
             }
             else
             {
@@ -171,11 +187,9 @@ namespace ProjectT.Umia
         // === 배회 ===
         void PickNewWanderTarget()
         {
-            // 이동방향 수직축으로 좌우 오프셋. lastMoveDir이 유지되므로 진입 방향 기준으로 자연스러운 배회.
-            Vector2 perp = new Vector2(-_lastMoveDir.y, _lastMoveDir.x);
-            float offset = Random.Range(-followDistance, followDistance);
-            _wanderTarget = _idleBasePos + perp * offset;
-            _wanderRepickTimer = Random.Range(0.3f, 0.8f);
+            // 반지름 2유닛 원 안에서 랜덤 배회 — 일정 방향에 치우치지 않고 자연스럽게 어슬렁거리는 느낌.
+            _wanderTarget = _idleBasePos + Random.insideUnitCircle * 2f;
+            _wanderRepickTimer = Random.Range(1.5f, 3.0f);
         }
 
         // === c-3 앞지르기 판정/갱신 ===
@@ -265,27 +279,14 @@ namespace ProjectT.Umia
             transform.position = new Vector3(next.x, next.y, transform.position.z);
         }
 
-        // === B케이스 코루틴 ===
-        // 시퀀스: 프리즈(1~1.5s) → 해제 후 catchUpSmoothTime으로 빠르게 따라붙기
-        //        → followDistance 안에 들어오면 일반 smoothTime 복귀 (ApplyMovement에서 처리)
-        IEnumerator CaseB()
-        {
-            _frozen = true;
-            yield return new WaitForSeconds(Random.Range(1f, 1.5f));
-            _frozen = false;
-            _currentSmoothTime = catchUpSmoothTime;
-            _catchingUp = true;
-            // SmoothDamp 관성 리셋 — 프리즈 이전 velocity가 남아 있으면 재개 시 튀는 문제 방지.
-            _velocity = Vector2.zero;
-        }
-
         // === 테스트용 컨텍스트 메뉴 ===
         // 인스펙터의 컴포넌트 우클릭 → 아래 항목 선택으로 강제 발동.
         [ContextMenu("Test: Force B Case")]
         void ForceBCase()
         {
             Debug.Log("[UmiaFollow] ContextMenu: Force B Case");
-            StartCoroutine(CaseB());
+            _frozen = true;
+            _velocity = Vector2.zero;
         }
 
         [ContextMenu("Test: Force Overtake")]
