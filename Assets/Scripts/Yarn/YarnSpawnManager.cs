@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -5,6 +6,13 @@ namespace ProjectT.Thread
 {
     public class YarnSpawnManager : MonoBehaviour
     {
+        // 실이 새로 스폰될 때마다 발화. UmiaCooperationDialogue 등 외부 시스템이
+        // "어느 방(=SpawnPoint의 부모)에서 스폰됐는지"를 알고 반응하기 위해 필요.
+        // 스폰 대상(SpawnPoint) 자체를 넘겨 소비자가 부모 방 이름을 직접 조회하도록 한다 —
+        // ThreadType까지 넘길 수도 있으나 현재 소비자는 방 정보만 필요.
+        public event Action<YarnSpawnPoint> OnYarnSpawned;
+
+
         [SerializeField] Yarn yarnPrefab;
         // 버프 해제(소모/만료/교체) 이벤트를 구독해 해당 타입의 실을 즉시 재스폰하기 위해 필요.
         // Player·Umia 등 여러 캐릭터가 각자 ThreadBuffHolder를 보유하므로 배열로 관리한다.
@@ -103,6 +111,11 @@ namespace ProjectT.Thread
             yarn.Initialize(type, point, this);
             point.Occupy();
             activeThreads[type] = yarn;
+
+            // 스폰 완료 이벤트. 구독자(예: UmiaCooperationDialogue)가 방 문맥 대사 트리거에 사용.
+            // 예외로 다른 스폰이 막히지 않도록 try/catch로 격리.
+            try { OnYarnSpawned?.Invoke(point); }
+            catch (Exception e) { Debug.LogError($"[YarnSpawnManager] OnYarnSpawned handler threw: {e}"); }
         }
 
         // 버프 소모/만료 시 씬에 남아있는 실을 전부 제거하고 3색을 새 위치에 다시 생성.
@@ -130,7 +143,8 @@ namespace ProjectT.Thread
             foreach (var p in spawnPoints)
                 if (!p.IsOccupied && !oneTimeExcluded.Contains(p)) free.Add(p);
             if (free.Count == 0) return null;
-            return free[Random.Range(0, free.Count)];
+            // System.Random과 모호성 회피를 위해 완전한 이름 사용.
+            return free[UnityEngine.Random.Range(0, free.Count)];
         }
 
         // 디버거/HUD가 각 타입의 활성 여부를 조회하기 위한 read-only 프로브 —
