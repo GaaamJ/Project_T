@@ -133,11 +133,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2325396873044800285, guid: 5656db779b9e32d45ab19dfbdc1a6896, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.17
+      value: -0.2
       objectReference: {fileID: 0}
     - target: {fileID: 2325396873044800285, guid: 5656db779b9e32d45ab19dfbdc1a6896, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.13
+      value: 35
       objectReference: {fileID: 0}
     - target: {fileID: 2325396873044800285, guid: 5656db779b9e32d45ab19dfbdc1a6896, type: 3}
       propertyPath: m_LocalPosition.z
@@ -17108,7 +17108,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.17, y: 0.13, z: -10}
+  m_LocalPosition: {x: -0.2, y: 35, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -18223,7 +18223,7 @@ Transform:
   m_GameObject: {fileID: 960262726}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 57.2, y: -22.8, z: 0}
+  m_LocalPosition: {x: 58.73, y: -27.86, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -18763,7 +18763,7 @@ Transform:
   m_GameObject: {fileID: 1120068468}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 23, y: -21.7, z: 0}
+  m_LocalPosition: {x: 29.02, y: -26.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -29540,7 +29540,7 @@ Transform:
   m_GameObject: {fileID: 1455187637}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.17, y: 0.13, z: 0}
+  m_LocalPosition: {x: -0.2, y: 35, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -29939,7 +29939,7 @@ Transform:
   m_GameObject: {fileID: 1559354866}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.2, y: -0.1, z: 0}
+  m_LocalPosition: {x: 0.83000004, y: 34.77, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -29973,7 +29973,13 @@ MonoBehaviour:
   player: {fileID: 1455187639}
   followDistance: 1.2
   smoothTime: 0.2
+  catchUpSmoothTime: 0.05
+  catchUpTriggerDistance: 3
   moveThreshold: 0.05
+  idleDelay: 0.5
+  wanderSpeed: 0.8
+  overtakeDistance: 1.5
+  teleportThreshold: 3
 --- !u!1 &1613013330
 GameObject:
   m_ObjectHideFlags: 0
