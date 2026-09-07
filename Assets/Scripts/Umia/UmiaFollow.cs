@@ -104,7 +104,6 @@ namespace ProjectT.Umia
                     _currentSmoothTime = catchUpSmoothTime;
                     _catchingUp = true;
                     _velocity = Vector2.zero;
-                    Debug.Log("[UmiaFollow] B케이스: 뛰어오기 시작");
                 }
                 else
                 {
@@ -187,13 +186,11 @@ namespace ProjectT.Umia
             bool caseB = Random.value < 0.3f;
             if (caseB)
             {
-                Debug.Log("[UmiaFollow] MoveStart B (지연) — 3유닛 멀어지면 뛰어옴");
                 _frozen = true;
                 _velocity = Vector2.zero;
             }
             else
             {
-                Debug.Log("[UmiaFollow] MoveStart A (즉시)");
                 _currentSmoothTime = smoothTime;
                 _catchingUp = false;
             }
@@ -314,22 +311,5 @@ namespace ProjectT.Umia
             ScheduleNextOvertakeCheck();
         }
 
-        // === 테스트용 컨텍스트 메뉴 ===
-        // 인스펙터의 컴포넌트 우클릭 → 아래 항목 선택으로 강제 발동.
-        [ContextMenu("Test: Force B Case")]
-        void ForceBCase()
-        {
-            Debug.Log("[UmiaFollow] ContextMenu: Force B Case");
-            _frozen = true;
-            _velocity = Vector2.zero;
-        }
-
-        [ContextMenu("Test: Force Overtake")]
-        void ForceOvertake()
-        {
-            Debug.Log("[UmiaFollow] ContextMenu: Force Overtake");
-            _state = UmiaState.Moving;
-            StartOvertake();
-        }
     }
 }

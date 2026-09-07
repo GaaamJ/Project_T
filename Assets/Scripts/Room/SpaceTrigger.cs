@@ -18,14 +18,6 @@ public class SpaceTrigger : MonoBehaviour
     {
         if (!other.CompareTag("Player")) return;
         string id = $"{SceneManager.GetActiveScene().name}_{gameObject.name}";
-        if (!SaveManager.Instance.IsVisited(id))
-        {
-            SaveManager.Instance.MarkVisited(id);
-            Debug.Log($"[SpaceTrigger] 첫 방문: {id}");
-        }
-        else
-        {
-            Debug.Log($"[SpaceTrigger] 재방문: {id}");
-        }
+        SaveManager.Instance.MarkVisited(id);
     }
 }
