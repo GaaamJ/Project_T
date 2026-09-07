@@ -27,7 +27,7 @@ namespace ProjectT.Umia
         [Header("Follow (c-1)")]
         [SerializeField] float followDistance = 1.2f;      // 플레이어 뒤 거리
         [SerializeField] float smoothTime = 0.2f;          // 일반 따라오기 응답성
-        [SerializeField] float catchUpSmoothTime = 0.05f;       // B케이스 빠른 따라붙기
+        [SerializeField] float catchUpSmoothTime = 0.15f;       // B케이스 따라붙기 속도 (낮을수록 빠름)
         [SerializeField] float catchUpTriggerDistance = 3f;  // B케이스: 이 거리 이상 멀어지면 뛰어오기
         [SerializeField] float moveThreshold = 0.05f;         // 이 속도 미만이면 정지 취급
 
@@ -187,8 +187,11 @@ namespace ProjectT.Umia
         // === 배회 ===
         void PickNewWanderTarget()
         {
-            // 반지름 2유닛 원 안에서 랜덤 배회 — 일정 방향에 치우치지 않고 자연스럽게 어슬렁거리는 느낌.
-            _wanderTarget = _idleBasePos + Random.insideUnitCircle * 2f;
+            // 40% 확률로 새 위치로 이동, 60%는 제자리 대기 — 이따금 움직이는 느낌.
+            if (Random.value < 0.4f)
+                _wanderTarget = _idleBasePos + Random.insideUnitCircle * 2f;
+            else
+                _wanderTarget = transform.position;
             _wanderRepickTimer = Random.Range(1.5f, 3.0f);
         }
 
