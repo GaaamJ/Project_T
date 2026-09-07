@@ -29762,7 +29762,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c965bd6e30b05c4eb3a00cf1c151020, type: 3}
   m_Name: 
   m_EditorClassIdentifier: ProjectT.Thread::ProjectT.Thread.ThreadBuffHolder
-  buffDuration: 20
+  buffDuration: 19.3
 --- !u!114 &1455187644
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30088,7 +30088,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c965bd6e30b05c4eb3a00cf1c151020, type: 3}
   m_Name: 
   m_EditorClassIdentifier: ProjectT.Thread::ProjectT.Thread.ThreadBuffHolder
-  buffDuration: 20
+  buffDuration: 19.3
 --- !u!114 &1559354870
 MonoBehaviour:
   m_ObjectHideFlags: 0
