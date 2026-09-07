@@ -25,7 +25,7 @@ namespace ProjectT.Umia
         [SerializeField] Transform player;
 
         [Header("Follow (c-1)")]
-        [SerializeField] float followDistance = 1.2f;      // 플레이어 뒤 거리
+        [SerializeField] float followDistance = 0.5f;      // 플레이어 뒤 거리
         [SerializeField] float smoothTime = 0.2f;          // 일반 따라오기 응답성
         [SerializeField] float catchUpSmoothTime = 0.15f;       // B케이스 따라붙기 속도 (낮을수록 빠름)
         [SerializeField] float catchUpTriggerDistance = 3f;  // B케이스: 이 거리 이상 멀어지면 뛰어오기
@@ -38,6 +38,12 @@ namespace ProjectT.Umia
         [Header("Overtake (c-3)")]
         [SerializeField] float overtakeDistance = 1.5f;    // 앞으로 나가는 거리
 
+        [Header("Teleport Detection")]
+        [SerializeField] float teleportThreshold = 3f;     // 한 프레임에 플레이어가 이 거리 이상 이동하면 텔레포트로 간주
+
+        [Header("Catch-Up (B케이스)")]
+        [SerializeField] float catchUpMaxSpeed = 8f;       // 뛰어오기 최대 속도 상한 (Infinity면 순간이동처럼 보임)
+
         // --- 런타임 상태 ---
         // 탑뷰 기본값: 시작 직후 방향 갱신 전에도 "아래를 뒤"로 삼아 초기 위치가 어색하지 않게.
         Vector2 _lastMoveDir = Vector2.down;
@@ -46,6 +52,8 @@ namespace ProjectT.Umia
 
         UmiaState _state = UmiaState.Moving;
         float _currentSmoothTime;           // Moving 상태에서 실제 사용할 smoothTime (A/B 케이스로 달라짐)
+
+        Vector2 _lastPlayerPos;             // 텔레포트 감지용: 직전 프레임 플레이어 위치
 
         // Idle 관련
         float _idleTimer;                   // 플레이어가 정지 상태로 있는 누적 시간
@@ -68,6 +76,7 @@ namespace ProjectT.Umia
             if (player != null)
             {
                 _playerRb = player.GetComponent<Rigidbody2D>();
+                _lastPlayerPos = player.position;
             }
             _currentSmoothTime = smoothTime;
             ScheduleNextOvertakeCheck();
@@ -76,6 +85,14 @@ namespace ProjectT.Umia
         void FixedUpdate()
         {
             if (player == null || _playerRb == null) return;
+
+            // 플레이어가 한 프레임에 teleportThreshold 이상 이동했으면 텔레포트로 간주하고 스냅.
+            Vector2 currentPlayerPos = player.position;
+            if (Vector2.Distance(currentPlayerPos, _lastPlayerPos) >= teleportThreshold)
+            {
+                TeleportTo(player.position);
+            }
+            _lastPlayerPos = currentPlayerPos;
 
             // B케이스 지연 중: 플레이어가 catchUpTriggerDistance 이상 멀어지면 뛰어오기 시작.
             if (_frozen)
@@ -153,11 +170,12 @@ namespace ProjectT.Umia
         {
             _state = UmiaState.Idle;
             _idleBasePos = player.position;
-            // 앞지르기/캐치업 상태는 Idle 진입 시 정리.
             _overtaking = false;
             _catchingUp = false;
             _currentSmoothTime = smoothTime;
-            PickNewWanderTarget();
+            // 진입 직후 2~3초는 제자리에 멈춰 있고, 그 뒤에 배회 시작.
+            _wanderTarget = transform.position;
+            _wanderRepickTimer = Random.Range(2f, 3f);
         }
 
         void EnterMoving()
@@ -276,10 +294,24 @@ namespace ProjectT.Umia
             }
 
             Vector2 current = transform.position;
+            float maxSpeed = _catchingUp ? catchUpMaxSpeed : Mathf.Infinity;
             Vector2 next = Vector2.SmoothDamp(current, target, ref _velocity, useSmoothTime,
-                                              Mathf.Infinity, Time.fixedDeltaTime);
+                                              maxSpeed, Time.fixedDeltaTime);
             // z 유지 — 스프라이트 정렬/카메라 세팅에 영향 주지 않도록.
             transform.position = new Vector3(next.x, next.y, transform.position.z);
+        }
+
+        // 텔레포터 사용 시 호출. 위치를 스냅하고 진행 중인 상태를 초기화한다.
+        public void TeleportTo(Vector3 position)
+        {
+            transform.position = new Vector3(position.x, position.y, transform.position.z);
+            _velocity = Vector2.zero;
+            _frozen = false;
+            _catchingUp = false;
+            _overtaking = false;
+            _state = UmiaState.Moving;
+            _idleTimer = 0f;
+            ScheduleNextOvertakeCheck();
         }
 
         // === 테스트용 컨텍스트 메뉴 ===
