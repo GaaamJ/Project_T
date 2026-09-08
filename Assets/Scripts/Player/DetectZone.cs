@@ -12,6 +12,9 @@ namespace ProjectT.Player
     [RequireComponent(typeof(Collider2D))]
     public class DetectZone : MonoBehaviour
     {
+        [Tooltip("감지할 대상의 레이어 (Interactable 레이어 지정). 이 레이어에 속하지 않는 오브젝트는 무시된다.")]
+        [SerializeField] LayerMask interactableMask;
+
         // Interact 입력 시점에 PlayerInteract 가 참조하는 "현재 감지된 Coordinate".
         // 없을 때 null. 외부에서는 읽기 전용.
         public Coordinate.Coordinate CurrentTarget { get; private set; }
@@ -26,6 +29,7 @@ namespace ProjectT.Player
 
         void OnTriggerEnter2D(Collider2D other)
         {
+            if ((interactableMask.value & (1 << other.gameObject.layer)) == 0) return;
             // 자식/루트 어디에 Coordinate 가 붙어 있어도 찾을 수 있게 GetComponentInParent 사용.
             var coord = other.GetComponentInParent<Coordinate.Coordinate>();
             if (coord == null) return;
@@ -36,6 +40,7 @@ namespace ProjectT.Player
 
         void OnTriggerExit2D(Collider2D other)
         {
+            if ((interactableMask.value & (1 << other.gameObject.layer)) == 0) return;
             var coord = other.GetComponentInParent<Coordinate.Coordinate>();
             if (coord == null) return;
 

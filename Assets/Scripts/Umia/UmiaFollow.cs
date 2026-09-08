@@ -38,6 +38,9 @@ namespace ProjectT.Umia
         [Header("Overtake (c-3)")]
         [SerializeField] float overtakeDistance = 1.5f;    // 앞으로 나가는 거리
 
+        [Header("Direction Smoothing")]
+        [SerializeField] float dirLerpSpeed = 8f;          // 이동 방향 전환 시 보간 속도 (높을수록 빠름)
+
         [Header("Teleport Detection")]
         [SerializeField] float teleportThreshold = 3f;     // 한 프레임에 플레이어가 이 거리 이상 이동하면 텔레포트로 간주
 
@@ -47,6 +50,7 @@ namespace ProjectT.Umia
         // --- 런타임 상태 ---
         // 탑뷰 기본값: 시작 직후 방향 갱신 전에도 "아래를 뒤"로 삼아 초기 위치가 어색하지 않게.
         Vector2 _lastMoveDir = Vector2.down;
+        Vector2 _smoothedMoveDir = Vector2.down; // 방향 전환 시 급격한 이동 방지용 보간 방향
         Vector2 _velocity;                  // SmoothDamp 내부 상태 — 프레임 간 유지 필수
         Rigidbody2D _playerRb;
 
@@ -119,6 +123,9 @@ namespace ProjectT.Umia
             {
                 _lastMoveDir = vel.normalized;
             }
+            // 실제 방향으로 부드럽게 보간 — 급격한 방향 전환 시 타겟 위치 점프 방지.
+            _smoothedMoveDir = Vector2.Lerp(_smoothedMoveDir, _lastMoveDir,
+                                            dirLerpSpeed * Time.fixedDeltaTime).normalized;
 
             UpdateStateMachine(isMoving);
             ApplyMovement();
@@ -202,8 +209,8 @@ namespace ProjectT.Umia
         // === 배회 ===
         void PickNewWanderTarget()
         {
-            // 40% 확률로 새 위치로 이동, 60%는 제자리 대기 — 이따금 움직이는 느낌.
-            if (Random.value < 0.4f)
+            // 20% 확률로 새 위치로 이동, 80%는 제자리 대기.
+            if (Random.value < 0.2f)
                 _wanderTarget = _idleBasePos + Random.insideUnitCircle * 2f;
             else
                 _wanderTarget = transform.position;
@@ -266,14 +273,14 @@ namespace ProjectT.Umia
                 if (_overtaking)
                 {
                     // c-3 발동 중에는 앞 타겟을 계속 갱신(플레이어가 계속 이동 중이므로).
-                    _overtakeTarget = (Vector2)player.position + _lastMoveDir * overtakeDistance;
+                    _overtakeTarget = (Vector2)player.position + _smoothedMoveDir * overtakeDistance;
                     target = _overtakeTarget;
                     useSmoothTime = smoothTime;
                 }
                 else
                 {
                     // c-1: 플레이어 뒤 followDistance.
-                    target = (Vector2)player.position + (-_lastMoveDir * followDistance);
+                    target = (Vector2)player.position + (-_smoothedMoveDir * followDistance);
                     useSmoothTime = _currentSmoothTime;
 
                     // B케이스 캐치업 판정: followDistance 안으로 들어오면 일반 smoothTime으로 복구.
@@ -303,6 +310,7 @@ namespace ProjectT.Umia
         {
             transform.position = new Vector3(position.x, position.y, transform.position.z);
             _velocity = Vector2.zero;
+            _smoothedMoveDir = _lastMoveDir; // 텔레포트 후 방향 보간 잔상 제거
             _frozen = false;
             _catchingUp = false;
             _overtaking = false;

@@ -25,6 +25,9 @@ namespace ProjectT.Thread
         readonly Dictionary<ThreadType, Yarn> activeThreads = new();
         // 플레이어가 실을 수집한 스폰 지점 — 다음 ResetAllAndRespawn 1회에 한해 재사용 금지.
         readonly HashSet<YarnSpawnPoint> oneTimeExcluded = new();
+        // 가장 최근에 실을 수집한 방(SpawnPoint의 부모). 해당 방에는 실을 스폰하지 않는다.
+        // 새 실을 수집하면 갱신되며, 이전 방 제한은 자동 해제된다.
+        Transform _lastAcquiredRoom;
 
         void Awake()
         {
@@ -74,6 +77,7 @@ namespace ProjectT.Thread
         {
             activeThreads.Remove(type);
             if (point != null) oneTimeExcluded.Add(point);
+            _lastAcquiredRoom = point?.transform.parent;
             SpawnThread(type);
         }
 
@@ -141,7 +145,8 @@ namespace ProjectT.Thread
         {
             var free = new List<YarnSpawnPoint>();
             foreach (var p in spawnPoints)
-                if (!p.IsOccupied && !oneTimeExcluded.Contains(p)) free.Add(p);
+                if (!p.IsOccupied && !oneTimeExcluded.Contains(p)
+                    && p.transform.parent != _lastAcquiredRoom) free.Add(p);
             if (free.Count == 0) return null;
             // System.Random과 모호성 회피를 위해 완전한 이름 사용.
             return free[UnityEngine.Random.Range(0, free.Count)];
