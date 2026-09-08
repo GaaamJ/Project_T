@@ -14,6 +14,11 @@ namespace ProjectT.Coordinate
 
         SpriteRenderer sr;
 
+        // 인스펙터에서 지정한 비활성 외형 스프라이트를 캐시.
+        // Reset() 시 null로 밀어버리면 리트라이 후 좌표가 화면에서 사라지는 버그가 생겨서
+        // Awake 시점에 초기값을 붙잡아 뒀다가 리셋에서 복원한다.
+        Sprite initialSprite;
+
         public bool IsActive { get; private set; }
         public ThreadType BoundType { get; private set; }
 
@@ -23,6 +28,7 @@ namespace ProjectT.Coordinate
         void Awake()
         {
             sr = GetComponent<SpriteRenderer>();
+            initialSprite = sr.sprite;
         }
 
         // DetectZone이 범위 안의 홀더를 감지했을 때 호출.
@@ -64,9 +70,9 @@ namespace ProjectT.Coordinate
 public void Reset()
 {
     IsActive = false;
-    // 비활성 상태의 기본 스프라이트가 별도로 없으므로 null로 클리어.
-    // 필요 시 인스펙터에 defaultSprite 필드를 추가해 회색 스프라이트로 교체할 수 있음.
-    if (sr != null) sr.sprite = null;
+    // Awake에서 캐시한 초기(비활성) 스프라이트로 복원.
+    // null로 밀면 리트라이 후 좌표가 씬에서 보이지 않게 되므로 반드시 캐시값을 사용한다.
+    if (sr != null) sr.sprite = initialSprite;
 }
 }
 }
