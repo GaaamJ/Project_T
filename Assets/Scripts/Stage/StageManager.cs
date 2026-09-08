@@ -74,6 +74,12 @@ namespace ProjectT.Stage
             if (State == StageState.Clear) return;
 
             State = StageState.Clear;
+            // 마지막 좌표 바인딩 흐름(Coordinate.TryBind → holder.Consume → OnBuffConsumed → ResetAllAndRespawn → SpawnThread → OnYarnSpawned)이
+            // 실제로는 HandleCoordinateActivated → ClearStage보다 먼저 실행되어, 클리어 이후에도 힌트 대사가 재생되는 버그가 있었다.
+            // ClearStage에서 즉시 ResetStage를 호출해 스폰 게이트(isActive)를 내리고 씬의 실타래를 정리하면,
+            // 지연 도달하는 잔여 버프 이벤트가 스폰과 이벤트 발화를 트리거하지 못한다.
+            if (yarnSpawnManager != null)
+                yarnSpawnManager.ResetStage();
             Debug.Log("[StageManager] 스테이지 클리어");
             OnStageCleared?.Invoke();
         }
