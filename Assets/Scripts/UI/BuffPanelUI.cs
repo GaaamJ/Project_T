@@ -85,10 +85,15 @@ namespace ProjectT.UI
         void UpdateLabel()
         {
             if (label == null) return;
-            // "{Type}: {seconds}s" — 잔여시간은 소수점 1자리(0.1s 단위)로 표시.
-            // ThreadBuffHolder.RemainingTime 이 음수로 내려가진 않지만(만료 처리) 안전상 Clamp.
             float remain = Mathf.Max(0f, buffHolder.RemainingTime);
-            label.text = $"{buffHolder.CurrentType}: {remain:0.0}s";
+            label.text = $"{GetBuffName(buffHolder.CurrentType)}: {Mathf.FloorToInt(remain)}";
         }
+
+        static string GetBuffName(ThreadType type) => type switch
+        {
+            ThreadType.Blue => "푸른 실",
+            ThreadType.Gold => "금빛 실",
+            _               => "붉은 실",
+        };
     }
 }
