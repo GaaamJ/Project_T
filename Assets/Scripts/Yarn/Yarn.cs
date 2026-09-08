@@ -37,7 +37,7 @@ namespace ProjectT.Thread
         {
             attacker?.Acquire(type);
             spawnPoint?.Free();
-            spawnManager?.NotifyDestroyed(type);
+            spawnManager?.NotifyDestroyed(type, spawnPoint);
             Destroy(gameObject);
         }
     }

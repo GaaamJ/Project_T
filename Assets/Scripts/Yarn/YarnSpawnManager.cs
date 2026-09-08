@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -5,6 +6,13 @@ namespace ProjectT.Thread
 {
     public class YarnSpawnManager : MonoBehaviour
     {
+        // 실이 새로 스폰될 때마다 발화. UmiaCooperationDialogue 등 외부 시스템이
+        // "어느 방(=SpawnPoint의 부모)에서 스폰됐는지"를 알고 반응하기 위해 필요.
+        // 스폰 대상(SpawnPoint) 자체를 넘겨 소비자가 부모 방 이름을 직접 조회하도록 한다 —
+        // ThreadType까지 넘길 수도 있으나 현재 소비자는 방 정보만 필요.
+        public event Action<YarnSpawnPoint> OnYarnSpawned;
+
+
         [SerializeField] Yarn yarnPrefab;
         // 버프 해제(소모/만료/교체) 이벤트를 구독해 해당 타입의 실을 즉시 재스폰하기 위해 필요.
         // Player·Umia 등 여러 캐릭터가 각자 ThreadBuffHolder를 보유하므로 배열로 관리한다.
@@ -15,6 +23,8 @@ namespace ProjectT.Thread
         // 각 타입별로 활성 인스턴스가 최대 1개라는 규칙을 강제하기 위해 dict로 관리.
         // (같은 타입이 두 개 스폰되면 안 됨)
         readonly Dictionary<ThreadType, Yarn> activeThreads = new();
+        // 플레이어가 실을 수집한 스폰 지점 — 다음 ResetAllAndRespawn 1회에 한해 재사용 금지.
+        readonly HashSet<YarnSpawnPoint> oneTimeExcluded = new();
 
         void Awake()
         {
@@ -22,17 +32,14 @@ namespace ProjectT.Thread
             // 인스펙터 수동 연결을 없애서 스폰 지점 추가/제거 시 매니저 재설정 필요 없게 함.
             spawnPoints = FindObjectsByType<YarnSpawnPoint>(FindObjectsSortMode.None);
 
-            // 버프가 해제되는 세 가지 경로(소모/만료/교체) 모두 동일하게 "그 타입을 다시 스폰"으로 이어짐.
-            // 매니저가 매 프레임 상태를 폴링하지 않고 이벤트 기반으로 리스폰하기 위해 구독.
-            // 여러 홀더 중 어느 하나에서 버프가 해제되어도 같은 SpawnThread 콜백이 호출됨 —
-            // SpawnThread 내부 가드에서 "다른 홀더가 그 타입을 들고 있으면 스폰 보류" 처리.
+            // 소모/만료 시 전체 리셋 후 3색 재스폰, 교체 시 교체된 타입만 재스폰.
             if (buffHolders != null)
             {
                 foreach (var holder in buffHolders)
                 {
                     if (holder == null) continue;
-                    holder.OnBuffConsumed += SpawnThread;
-                    holder.OnBuffExpired  += SpawnThread;
+                    holder.OnBuffConsumed += ResetAllAndRespawn;
+                    holder.OnBuffExpired  += ResetAllAndRespawn;
                     holder.OnBuffReplaced += SpawnThread;
                 }
             }
@@ -46,8 +53,8 @@ namespace ProjectT.Thread
                 foreach (var holder in buffHolders)
                 {
                     if (holder == null) continue;
-                    holder.OnBuffConsumed -= SpawnThread;
-                    holder.OnBuffExpired  -= SpawnThread;
+                    holder.OnBuffConsumed -= ResetAllAndRespawn;
+                    holder.OnBuffExpired  -= ResetAllAndRespawn;
                     holder.OnBuffReplaced -= SpawnThread;
                 }
             }
@@ -61,11 +68,12 @@ namespace ProjectT.Thread
             SpawnThread(ThreadType.Gold);
         }
 
-        // Thread가 파괴될 때 콜백으로 호출됨.
-        // 매니저가 매 프레임 감시하지 않고, 이벤트 기반으로 리스폰 트리거.
-        public void NotifyDestroyed(ThreadType type)
+        // 플레이어가 실을 수집했을 때 Yarn.TakeHit에서 호출.
+        // 수집된 스폰 지점은 다음 ResetAllAndRespawn 1회에서 제외된다.
+        public void NotifyDestroyed(ThreadType type, YarnSpawnPoint point)
         {
             activeThreads.Remove(type);
+            if (point != null) oneTimeExcluded.Add(point);
             SpawnThread(type);
         }
 
@@ -103,6 +111,29 @@ namespace ProjectT.Thread
             yarn.Initialize(type, point, this);
             point.Occupy();
             activeThreads[type] = yarn;
+
+            // 스폰 완료 이벤트. 구독자(예: UmiaCooperationDialogue)가 방 문맥 대사 트리거에 사용.
+            // 예외로 다른 스폰이 막히지 않도록 try/catch로 격리.
+            try { OnYarnSpawned?.Invoke(point); }
+            catch (Exception e) { Debug.LogError($"[YarnSpawnManager] OnYarnSpawned handler threw: {e}"); }
+        }
+
+        // 버프 소모/만료 시 씬에 남아있는 실을 전부 제거하고 3색을 새 위치에 다시 생성.
+        // OnBuffReplaced(교체)는 이 경로를 타지 않는다 — 홀더가 버프를 계속 보유 중이므로.
+        void ResetAllAndRespawn(ThreadType _)
+        {
+            foreach (var yarn in activeThreads.Values)
+                if (yarn != null) Destroy(yarn.gameObject);
+
+            foreach (var point in spawnPoints)
+                point.Free();
+
+            activeThreads.Clear();
+
+            SpawnThread(ThreadType.Red);
+            SpawnThread(ThreadType.Blue);
+            SpawnThread(ThreadType.Gold);
+            oneTimeExcluded.Clear();
         }
 
         // 매번 동일 위치에 나오면 패턴이 예측 가능해지므로 free 목록에서 랜덤 선택.
@@ -110,9 +141,10 @@ namespace ProjectT.Thread
         {
             var free = new List<YarnSpawnPoint>();
             foreach (var p in spawnPoints)
-                if (!p.IsOccupied) free.Add(p);
+                if (!p.IsOccupied && !oneTimeExcluded.Contains(p)) free.Add(p);
             if (free.Count == 0) return null;
-            return free[Random.Range(0, free.Count)];
+            // System.Random과 모호성 회피를 위해 완전한 이름 사용.
+            return free[UnityEngine.Random.Range(0, free.Count)];
         }
 
         // 디버거/HUD가 각 타입의 활성 여부를 조회하기 위한 read-only 프로브 —

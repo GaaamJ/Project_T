@@ -174,3 +174,49 @@ title: Starlight6Test
 <<SetAlpha SpeakerImage 1>>
 Thea: 왼쪽으로 쭉 이어 나가죠!
 ===
+
+title: SandBox_DownLeftRoom
+---
+Umia: 이 아래 왼쪽 방... 전에 와본 것 같아요.
+Umia: 여기 실이 있네요.
+===
+
+title: SandBox_DownRightRoom
+---
+Umia: 아래 오른쪽 방이에요. 실이 여기서 이어져요.
+===
+
+title: SandBox_RightTopRoom
+---
+Umia: 오른쪽 위 방. 여기도 실이 있어요.
+===
+
+title: SandBox_RightDownRoom
+---
+Umia: 오른쪽 아래... 이 방 기억나요. 실이 보여요.
+===
+
+title: SandBox_LeftTopRoom
+---
+Umia: 왼쪽 위 방이에요. 실이 반짝여요.
+===
+
+title: SandBox_LeftDownRoom
+---
+Umia: 왼쪽 아래 방. 실이 여기 있네요.
+===
+
+title: UmiaNoSense_1
+---
+Umia: 실타래가... 잘 모르겠어요.
+===
+
+title: UmiaNoSense_2
+---
+Umia: 어디로 이어진 걸까요...?
+===
+
+title: UmiaNoSense_3
+---
+Umia: 이 실... 아직 감이 안 잡혀요.
+===

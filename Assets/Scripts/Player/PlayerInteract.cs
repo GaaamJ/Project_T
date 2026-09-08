@@ -56,8 +56,7 @@ namespace ProjectT.Player
             var target = detectZone.CurrentTarget;
             if (target == null) return;
 
-            bool result = target.TryBind(buffHolder);
-            Debug.Log($"[PlayerInteract] Interact TryBind: {result}");
+            target.TryBind(buffHolder);
         }
     }
 }
