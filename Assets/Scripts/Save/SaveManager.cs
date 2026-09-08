@@ -19,7 +19,7 @@ public class SaveManager : MonoBehaviour
         }
     }
 
-    private static readonly string SavePath =
+    private static string SavePath =>
         Path.Combine(Application.persistentDataPath, "save.json");
 
     private HashSet<string> _visited = new HashSet<string>();
