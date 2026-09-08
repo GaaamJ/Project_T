@@ -31922,8 +31922,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectT.Stage.StageManager
   yarnSpawnManager: {fileID: 987085800}
   buffHolders:
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 1455187642}
+  - {fileID: 1559354869}
   startZoneCenter: {fileID: 1045844965}
 --- !u!4 &1435568695
 Transform:
