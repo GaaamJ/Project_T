@@ -79,5 +79,17 @@ namespace ProjectT.Thread
                 OnBuffExpired?.Invoke(expired);
             }
         }
-    }
+    
+
+// StageManager가 리트라이 시 호출. 버프를 강제로 초기화하되 이벤트를 발행하지 않는다.
+// 일반 Consume/Expire와 달리 이벤트가 없어야 하는 이유:
+// YarnSpawnManager는 OnBuffConsumed/OnBuffExpired 구독 시 ResetAllAndRespawn을 호출하는데,
+// 리트라이 흐름에서는 StageManager가 YarnSpawnManager.ResetStage()를 이미 별도로 호출하므로
+// 여기서 이벤트를 발행하면 재스폰이 이중으로 트리거된다.
+public void ForceReset()
+{
+    // CurrentType은 그대로 유지 — HasBuff=false일 때 CurrentType은 의미가 없다는 기존 규약과 일관.
+    RemainingTime = 0f;
+}
+}
 }

@@ -71,6 +71,25 @@ namespace ProjectT.Thread
             SpawnThread(ThreadType.Gold);
         }
 
+// StageManager가 리트라이 시 호출. 씬의 모든 실을 제거하고 스폰 상태를 완전히 초기화한다.
+// ResetAllAndRespawn과 다른 점: 이 메서드는 StartStage()를 호출하지 않는다.
+// 리트라이 시나리오에서는 플레이어가 시작 구역을 다시 이탈해야 스테이지가 재개되므로
+// 스폰은 그 시점(StartStage 호출)에 트리거되어야 하기 때문.
+public void ResetStage()
+{
+    foreach (var yarn in activeThreads.Values)
+        if (yarn != null) Destroy(yarn.gameObject);
+
+    foreach (var point in spawnPoints)
+        point.Free();
+
+    activeThreads.Clear();
+    oneTimeExcluded.Clear();
+    // 리셋 후 첫 스폰 시 방 제한이 남아있으면 안 되므로 마지막 획득 방도 초기화.
+    _lastAcquiredRoom = null;
+}
+
+
         // 플레이어가 실을 수집했을 때 Yarn.TakeHit에서 호출.
         // 수집된 스폰 지점은 다음 ResetAllAndRespawn 1회에서 제외된다.
         public void NotifyDestroyed(ThreadType type, YarnSpawnPoint point)

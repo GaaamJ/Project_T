@@ -56,5 +56,17 @@ namespace ProjectT.Coordinate
 
             return true;
         }
-    }
+    
+
+// StageManager가 리트라이 시 호출. 좌표를 비활성 상태로 되돌리고 스프라이트도 초기화한다.
+// 이벤트를 발행하지 않는 이유: 리셋 자체는 게임플레이 반응이 아니라 상태 초기화이므로
+// OnActivated의 반대 개념(OnDeactivated)을 만들지 않고 단순 상태 리셋만 수행.
+public void Reset()
+{
+    IsActive = false;
+    // 비활성 상태의 기본 스프라이트가 별도로 없으므로 null로 클리어.
+    // 필요 시 인스펙터에 defaultSprite 필드를 추가해 회색 스프라이트로 교체할 수 있음.
+    if (sr != null) sr.sprite = null;
+}
+}
 }
