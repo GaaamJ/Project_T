@@ -75,6 +75,7 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
 # Obsidian auto-generated state
+ThreadVault/.obsidian/graph.json
 ThreadVault/.obsidian/workspace.json
 ThreadVault/.obsidian/workspace-mobile.json
 ThreadVault/.obsidian/core-plugins.json
