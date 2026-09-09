@@ -158,13 +158,8 @@ Thea: 케헥... 쿨럭... 어, 언니...
 
 title: AskForHelp
 ---
-<<SetAlpha SpeakerImage 0>>
--> 문에 대해 다시 물어본다.
-<<set $theaEmotion = "Speaking">>
-<<ChangeImage SpeakerImage Thea {$theaEmotion}>>
-<<SetAlpha SpeakerImage 1>>
-Thea: 다시 봐 볼게요.
-Thea: 음... 4에요.
+Umia: 음... 잘 모르겠어요?
+Umia: 좀 더 둘러보면 뭔가 보일 것 같은데요.
 ===
 
 title: Starlight6Test
