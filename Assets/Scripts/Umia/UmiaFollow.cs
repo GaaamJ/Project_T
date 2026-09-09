@@ -209,12 +209,12 @@ namespace ProjectT.Umia
         // === 배회 ===
         void PickNewWanderTarget()
         {
-            // 20% 확률로 새 위치로 이동, 80%는 제자리 대기.
-            if (Random.value < 0.2f)
+            // 10% 확률로 새 위치로 이동, 90%는 제자리 대기.
+            if (Random.value < 0.1f)
                 _wanderTarget = _idleBasePos + Random.insideUnitCircle * 2f;
             else
                 _wanderTarget = transform.position;
-            _wanderRepickTimer = Random.Range(1.5f, 3.0f);
+            _wanderRepickTimer = 5f;
         }
 
         // === c-3 앞지르기 판정/갱신 ===

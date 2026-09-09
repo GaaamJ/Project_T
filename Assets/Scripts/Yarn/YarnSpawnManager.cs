@@ -28,6 +28,13 @@ namespace ProjectT.Thread
         // 가장 최근에 실을 수집한 방(SpawnPoint의 부모). 해당 방에는 실을 스폰하지 않는다.
         // 새 실을 수집하면 갱신되며, 이전 방 제한은 자동 해제된다.
         Transform _lastAcquiredRoom;
+        // 스테이지 진행 중에만 스폰을 허용하기 위한 가드.
+        // 클리어 시점에 마지막 좌표 바인딩이 holder.Consume()을 호출하면 OnBuffConsumed가 발화되어
+        // ResetAllAndRespawn이 트리거되고, 그 안의 SpawnThread가 OnYarnSpawned를 발화시켜
+        // 이미 클리어된 상태인데도 힌트 대사가 재생되는 버그가 있었다.
+        // ClearStage()가 ResetStage()로 이 플래그를 false로 내려서, 이후 잔여 이벤트가
+        // ResetAllAndRespawn/SpawnThread에 도달해도 진입 직후 return시켜 스폰과 이벤트 발화를 차단한다.
+        bool isActive = false;
 
         void Awake()
         {
@@ -66,10 +73,36 @@ namespace ProjectT.Thread
         // 스테이지 진입 시점에 3색을 한 번씩 스폰. 시작 트리거는 외부에서 호출한다.
         public void StartStage()
         {
+            // 스폰 가드 활성화 — SpawnThread/ResetAllAndRespawn이 실제로 동작할 수 있도록 게이트를 연다.
+            isActive = true;
             SpawnThread(ThreadType.Red);
             SpawnThread(ThreadType.Blue);
             SpawnThread(ThreadType.Gold);
         }
+
+        // StageManager가 리트라이/클리어 시 호출. 씬의 모든 실을 제거하고 스폰 상태를 완전히 초기화한다.
+        // ResetAllAndRespawn과 다른 점: 이 메서드는 StartStage()를 호출하지 않는다.
+        // 리트라이 시나리오에서는 플레이어가 시작 구역을 다시 이탈해야 스테이지가 재개되므로
+        // 스폰은 그 시점(StartStage 호출)에 트리거되어야 하기 때문.
+        // 클리어 경로에서도 이 메서드를 호출해 isActive를 내려 잔여 이벤트로 인한 재스폰을 차단한다.
+        public void ResetStage()
+        {
+            // 스폰 가드를 먼저 내려서, 이 메서드 실행 중이나 직후에 도달할 수 있는
+            // OnBuffConsumed/OnBuffExpired → ResetAllAndRespawn 호출을 즉시 무력화한다.
+            isActive = false;
+
+            foreach (var yarn in activeThreads.Values)
+                if (yarn != null) Destroy(yarn.gameObject);
+
+            foreach (var point in spawnPoints)
+                point.Free();
+
+            activeThreads.Clear();
+            oneTimeExcluded.Clear();
+            // 리셋 후 첫 스폰 시 방 제한이 남아있으면 안 되므로 마지막 획득 방도 초기화.
+            _lastAcquiredRoom = null;
+        }
+
 
         // 플레이어가 실을 수집했을 때 Yarn.TakeHit에서 호출.
         // 수집된 스폰 지점은 다음 ResetAllAndRespawn 1회에서 제외된다.
@@ -96,6 +129,10 @@ namespace ProjectT.Thread
 
         void SpawnThread(ThreadType type)
         {
+            // 스테이지 진행 중이 아닐 때는 어떤 경로로 진입해도 스폰을 막는다.
+            // OnBuffReplaced(교체) 이벤트도 이 메서드에 직접 바인딩되어 있어, 클리어 이후
+            // 잔여 이벤트로 인한 스폰과 OnYarnSpawned 발화(→ 힌트 대사)를 차단하려면 여기 가드가 필요하다.
+            if (!isActive) return;
             if (activeThreads.ContainsKey(type)) return;
             // 어느 홀더든 해당 타입 버프를 보유 중이면 그 실은 존재하지 않는 상태가 정상 —
             // 그 홀더의 버프 해제(소모/만료/교체) 이벤트 시점에 다시 스폰되므로 여기서는 건너뛴다.
@@ -126,6 +163,11 @@ namespace ProjectT.Thread
         // OnBuffReplaced(교체)는 이 경로를 타지 않는다 — 홀더가 버프를 계속 보유 중이므로.
         void ResetAllAndRespawn(ThreadType _)
         {
+            // 스테이지가 이미 클리어/리셋된 상태에서 지연 도달한 소모/만료 이벤트를 흡수.
+            // 특히 마지막 좌표 바인딩 → holder.Consume() → OnBuffConsumed 경로가
+            // ClearStage()에서 재스폰과 힌트 대사(OnYarnSpawned)를 트리거하지 않도록 차단한다.
+            if (!isActive) return;
+
             foreach (var yarn in activeThreads.Values)
                 if (yarn != null) Destroy(yarn.gameObject);
 

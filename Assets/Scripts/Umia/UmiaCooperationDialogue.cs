@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Yarn.Unity;
 using ProjectT.Thread;
+using ProjectT.Dialogue;
 
 namespace ProjectT.Umia
 {
@@ -27,6 +28,8 @@ namespace ProjectT.Umia
         [Header("Dialogue")]
         [SerializeField] DialogueRunner dialogueRunner;
         [SerializeField] YarnSpawnManager spawnManager;
+        // 큐를 통해 대사를 재생 — 다른 트리거와 순서를 공유해 대사가 삼켜지지 않게 한다.
+        [SerializeField] UmiaDialogueQueue dialogueQueue;
 
         // b 케이스: 방문하지 않은 방에 실이 스폰됐을 때 랜덤 재생할 후보 노드.
         // 인스펙터에서 직접 지정 (자동 탐색은 오탐 위험).
@@ -79,7 +82,9 @@ namespace ProjectT.Umia
         //   - 방문 안 한 방 중 스폰 가능한 방이 있어도 여기서는 b를 강제할 방법이 없으므로 a만 처리
         public void TriggerCooperationCheck()
         {
-            if (dialogueRunner == null || dialogueRunner.IsDialogueRunning) return;
+            // 큐 도입 이후에는 IsDialogueRunning 가드가 불필요 — 큐가 재생 순서를 관리한다.
+            // 단, dialogueRunner 자체의 null만 방어.
+            if (dialogueRunner == null) return;
 
             var visitedWithSpawn = new List<string>();
             foreach (var roomId in _roomsWithSpawnPoints)
@@ -93,26 +98,16 @@ namespace ProjectT.Umia
 
             // a 케이스와 동일 노드 규칙: "{sceneName}_{roomName}"이 그대로 Yarn 노드 이름.
             string chosen = visitedWithSpawn[Random.Range(0, visitedWithSpawn.Count)];
-            if (dialogueRunner.YarnProject != null && dialogueRunner.YarnProject.NodeNames != null)
-            {
-                // 노드가 실제로 존재할 때만 실행 — 없으면 무시하고 조용히 넘어간다.
-                foreach (var n in dialogueRunner.YarnProject.NodeNames)
-                {
-                    if (n == chosen)
-                    {
-                        dialogueRunner.StartDialogue(chosen);
-                        return;
-                    }
-                }
-            }
+            PlayNodeIfExists(chosen);
         }
 
         // 실이 스폰된 방에 대한 실제 대사 판정. HandleYarnSpawned에서 호출.
         void TryPlayDialogueForRoom(string roomName)
         {
             if (dialogueRunner == null) return;
-            // 이미 대사 중이면 그 상황을 존중해 건너뛴다 (Q2: 3연속 스폰 → 첫 번째만 승리).
-            if (dialogueRunner.IsDialogueRunning) return;
+            // 큐 도입 이후에는 IsDialogueRunning 가드 없이 그대로 큐잉 —
+            // StartStage의 3연속 스폰이라도 첫 번째 방 대사만 노드 규칙상 매치되는 경우가 대부분이고,
+            // 여러 개가 매치되더라도 순서대로 재생되는 편이 자연스럽다.
 
             string sceneName = SceneManager.GetActiveScene().name;
             string roomId = $"{sceneName}_{roomName}";
@@ -145,10 +140,19 @@ namespace ProjectT.Umia
             }
         }
 
-        // Yarn Project에 등록된 노드에서만 재생. 오타/누락 노드로 인한 런타임 예외 회피.
+        // 대사 큐에 요청. 노드 존재 검증과 재생 순서는 UmiaDialogueQueue가 담당.
+        // 큐가 연결되지 않은 경우에만 예전 방식으로 폴백(테스트 편의 + 방어).
         void PlayNodeIfExists(string nodeName)
         {
             if (string.IsNullOrEmpty(nodeName)) return;
+
+            if (dialogueQueue != null)
+            {
+                dialogueQueue.Enqueue(nodeName);
+                return;
+            }
+
+            // 폴백 경로: 큐가 없으면 직접 재생(옛 동작 유지).
             if (dialogueRunner.YarnProject == null) return;
             var names = dialogueRunner.YarnProject.NodeNames;
             if (names == null) return;
