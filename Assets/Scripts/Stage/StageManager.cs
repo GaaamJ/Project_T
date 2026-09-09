@@ -37,6 +37,8 @@ namespace ProjectT.Stage
 
         // 상태 전이 이벤트. UI/문 개방/카메라 등 후속 시스템이 구독해 클리어 순간을 반응할 수 있게 노출.
         public event Action OnStageCleared;
+        // 실패(리셋) 발생 시 발화. 인자는 리셋 직전 활성화된 좌표 수 — 대사 트리거가 "얼마나 근접했나" 분기에 사용한다.
+        public event Action<int> OnStageFailed;
 
         void Awake()
         {
@@ -95,6 +97,16 @@ namespace ProjectT.Stage
         // 실제 리셋 로직. TriggerStageFail과 디버그 메뉴에서 공유.
         void PerformReset()
         {
+            // 실패 직전 활성 좌표 수를 캡처 — 이후 c.Reset()으로 상태가 지워지기 전에 계산해야 정확.
+            // 대사 트리거가 이 값을 "몇 개까지 갔었는지" 분기에 사용한다.
+            int coordsActive = 0;
+            if (coordinates != null)
+            {
+                foreach (var c in coordinates)
+                    if (c != null && c.IsActive) coordsActive++;
+            }
+            OnStageFailed?.Invoke(coordsActive);
+
             // 1) 실타래 전체 제거 + 스폰 상태 초기화 (StartStage는 호출하지 않음 — Waiting에서 시작 트리거로 다시 시작해야 함)
             if (yarnSpawnManager != null)
                 yarnSpawnManager.ResetStage();
