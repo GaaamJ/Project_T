@@ -28,7 +28,7 @@ namespace ProjectT.UI
         [SerializeField] GameObject panelRoot;
 
         // 이전 프레임의 HasBuff — 전이 감지(false→true, true→false)에 사용.
-        bool prevHasBuff;
+        bool _prevHasBuff;
 
         void Awake()
         {
@@ -47,9 +47,9 @@ namespace ProjectT.UI
                 return;
             }
 
-            prevHasBuff = buffHolder.HasBuff;
-            SetPanelActive(prevHasBuff);
-            if (prevHasBuff) UpdateLabel();
+            _prevHasBuff = buffHolder.HasBuff;
+            SetPanelActive(_prevHasBuff);
+            if (_prevHasBuff) UpdateLabel();
         }
 
         void Update()
@@ -59,12 +59,12 @@ namespace ProjectT.UI
             bool has = buffHolder.HasBuff;
 
             // 전이 감지: false → true (획득/교체 시작)
-            if (has && !prevHasBuff)
+            if (has && !_prevHasBuff)
             {
                 SetPanelActive(true);
             }
             // 전이 감지: true → false (만료/소모)
-            else if (!has && prevHasBuff)
+            else if (!has && _prevHasBuff)
             {
                 SetPanelActive(false);
             }
@@ -73,7 +73,7 @@ namespace ProjectT.UI
             // 교체(Replace) 케이스에서 CurrentType 도 즉시 반영되어야 하기 때문.
             if (has) UpdateLabel();
 
-            prevHasBuff = has;
+            _prevHasBuff = has;
         }
 
         void SetPanelActive(bool active)

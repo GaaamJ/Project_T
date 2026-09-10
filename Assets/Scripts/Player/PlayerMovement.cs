@@ -13,38 +13,38 @@ namespace ProjectT.Player
     {
         [SerializeField] float speed = 6f;
 
-        Rigidbody2D rb;
-        InputSystem_Actions actions;
+        Rigidbody2D _rb;
+        InputSystem_Actions _actions;
 
         void Awake()
         {
-            rb = GetComponent<Rigidbody2D>();
-            actions = new InputSystem_Actions();
+            _rb = GetComponent<Rigidbody2D>();
+            _actions = new InputSystem_Actions();
         }
 
         void OnEnable()
         {
-            actions.Player.Enable();
+            _actions.Player.Enable();
         }
 
         void OnDisable()
         {
-            actions.Player.Disable();
+            _actions.Player.Disable();
         }
 
         void OnDestroy()
         {
             // InputActionAsset 은 IDisposable — 명시적으로 해제해야 도메인 리로드/씬 전환 시 leak 방지.
-            actions?.Dispose();
+            _actions?.Dispose();
         }
 
         void FixedUpdate()
         {
             // Move는 Value 액션이라 매 프레임 폴링이 자연스럽다. 이동은 물리 스텝에서 처리해야 Collider 관통 방지.
-            Vector2 dir = actions.Player.Move.ReadValue<Vector2>();
+            Vector2 dir = _actions.Player.Move.ReadValue<Vector2>();
             // Move 액션의 2DVector composite는 이미 정규화된 값을 반환하지만, 방어적으로 클램프.
             if (dir.sqrMagnitude > 1f) dir.Normalize();
-            rb.linearVelocity = dir * speed;
+            _rb.linearVelocity = dir * speed;
         }
     }
 }

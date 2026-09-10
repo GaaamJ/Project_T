@@ -5,25 +5,22 @@ using Yarn.Unity;
 [RequireComponent(typeof(Image))]
 public class StandingCGChanger : MonoBehaviour
 {
-    private Image charImage;
+    Image _charImage;
 
-    private void Awake()
+    void Awake()
     {
-        charImage = GetComponent<Image>();
+        _charImage = GetComponent<Image>();
     }
 
     [YarnCommand("ChangeImage")]
     public void ChangeImage(string speaker, string emotion)
     {
-        // Construct the path to the sprite based on character name and emotion
         var spritePath = $"Sprites/{speaker}_{emotion}";
-
-        // Load the sprite from the Resources folder
         var newSprite = Resources.Load<Sprite>(spritePath);
 
         if (newSprite != null)
         {
-            charImage.sprite = newSprite;
+            _charImage.sprite = newSprite;
         }
         else
         {

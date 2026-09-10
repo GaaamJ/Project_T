@@ -11,7 +11,7 @@ namespace ProjectT.Thread
     public class ThreadBuffHolder : MonoBehaviour
     {
         // 모든 실 타입에 공통 적용되는 지속시간. 개별 타입별 duration은 현재 스코프 외.
-        [SerializeField] private float buffDuration = 20f;
+        [SerializeField] float buffDuration = 20f;
 
         public ThreadType CurrentType { get; private set; }
         public float RemainingTime { get; private set; }
@@ -55,7 +55,7 @@ namespace ProjectT.Thread
             OnBuffConsumed?.Invoke(consumed);
         }
 
-        private void Update()
+        void Update()
         {
             // 실제 감산/만료 로직은 Tick으로 분리 — EditMode 테스트에서 Time.deltaTime=0인 프레임에도
             // 임의의 dt를 주입해 결정적으로 검증하기 위함.
@@ -79,17 +79,16 @@ namespace ProjectT.Thread
                 OnBuffExpired?.Invoke(expired);
             }
         }
-    
 
-// StageManager가 리트라이 시 호출. 버프를 강제로 초기화하되 이벤트를 발행하지 않는다.
-// 일반 Consume/Expire와 달리 이벤트가 없어야 하는 이유:
-// YarnSpawnManager는 OnBuffConsumed/OnBuffExpired 구독 시 ResetAllAndRespawn을 호출하는데,
-// 리트라이 흐름에서는 StageManager가 YarnSpawnManager.ResetStage()를 이미 별도로 호출하므로
-// 여기서 이벤트를 발행하면 재스폰이 이중으로 트리거된다.
-public void ForceReset()
-{
-    // CurrentType은 그대로 유지 — HasBuff=false일 때 CurrentType은 의미가 없다는 기존 규약과 일관.
-    RemainingTime = 0f;
-}
-}
+        // StageManager가 리트라이 시 호출. 버프를 강제로 초기화하되 이벤트를 발행하지 않는다.
+        // 일반 Consume/Expire와 달리 이벤트가 없어야 하는 이유:
+        // YarnSpawnManager는 OnBuffConsumed/OnBuffExpired 구독 시 ResetAllAndRespawn을 호출하는데,
+        // 리트라이 흐름에서는 StageManager가 YarnSpawnManager.ResetStage()를 이미 별도로 호출하므로
+        // 여기서 이벤트를 발행하면 재스폰이 이중으로 트리거된다.
+        public void ForceReset()
+        {
+            // CurrentType은 그대로 유지 — HasBuff=false일 때 CurrentType은 의미가 없다는 기존 규약과 일관.
+            RemainingTime = 0f;
+        }
+    }
 }

@@ -6,23 +6,23 @@ public class Door : MonoBehaviour
     [SerializeField] Sprite closedSprite;
     [SerializeField] Sprite openSprite;
 
-    SpriteRenderer spriteRenderer;
+    SpriteRenderer _spriteRenderer;
 
     void Awake()
     {
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        _spriteRenderer = GetComponent<SpriteRenderer>();
         SetClosed();
     }
 
     void SetClosed()
     {
         if (doorCollider) doorCollider.enabled = true;
-        if (spriteRenderer && closedSprite) spriteRenderer.sprite = closedSprite;
+        if (_spriteRenderer && closedSprite) _spriteRenderer.sprite = closedSprite;
     }
 
     public void Open()
     {
         if (doorCollider) doorCollider.enabled = false;
-        if (spriteRenderer && openSprite) spriteRenderer.sprite = openSprite;
+        if (_spriteRenderer && openSprite) _spriteRenderer.sprite = openSprite;
     }
 }

@@ -14,43 +14,43 @@ namespace ProjectT.Player
         [Tooltip("공격에 맞힐 대상 레이어 (Yarn 레이어 지정)")]
         [SerializeField] LayerMask attackMask;
 
-        ThreadBuffHolder buffHolder;
-        InputSystem_Actions actions;
+        ThreadBuffHolder _buffHolder;
+        InputSystem_Actions _actions;
 
         // Raycast 결과 버퍼 — 매 프레임 new 를 피해 GC 압박을 낮추기 위해 재사용한다.
-        readonly RaycastHit2D[] attackHits = new RaycastHit2D[8];
+        readonly RaycastHit2D[] _attackHits = new RaycastHit2D[8];
 
         // ContactFilter2D 는 프로젝트 전역 Physics2D.queriesHitTriggers 설정과 무관하게
         // Trigger 콜라이더를 확실히 포함시키기 위해 useTriggers=true 로 명시적으로 구성한다.
-        ContactFilter2D attackFilter;
+        ContactFilter2D _attackFilter;
 
         void Awake()
         {
-            buffHolder = GetComponent<ThreadBuffHolder>();
-            actions = new InputSystem_Actions();
+            _buffHolder = GetComponent<ThreadBuffHolder>();
+            _actions = new InputSystem_Actions();
 
-            attackFilter = new ContactFilter2D();
-            attackFilter.SetLayerMask(attackMask);
-            attackFilter.useTriggers = true;
+            _attackFilter = new ContactFilter2D();
+            _attackFilter.SetLayerMask(attackMask);
+            _attackFilter.useTriggers = true;
             // ContactFilter2D는 SetLayerMask 후 useLayerMask 를 명시적으로 켜야 마스크가 적용된다.
-            attackFilter.useLayerMask = true;
+            _attackFilter.useLayerMask = true;
         }
 
         void OnEnable()
         {
-            actions.Player.Enable();
-            actions.Player.Attack.performed += OnAttackPerformed;
+            _actions.Player.Enable();
+            _actions.Player.Attack.performed += OnAttackPerformed;
         }
 
         void OnDisable()
         {
-            actions.Player.Attack.performed -= OnAttackPerformed;
-            actions.Player.Disable();
+            _actions.Player.Attack.performed -= OnAttackPerformed;
+            _actions.Player.Disable();
         }
 
         void OnDestroy()
         {
-            actions?.Dispose();
+            _actions?.Dispose();
         }
 
         void OnAttackPerformed(InputAction.CallbackContext ctx)
@@ -70,17 +70,17 @@ namespace ProjectT.Player
             if (dir.sqrMagnitude < 0.0001f) return;
             dir.Normalize();
 
-            int hitCount = Physics2D.Raycast(origin, dir, attackFilter, attackHits, attackRange);
+            int hitCount = Physics2D.Raycast(origin, dir, _attackFilter, _attackHits, attackRange);
             for (int i = 0; i < hitCount; i++)
             {
-                var hit = attackHits[i];
+                var hit = _attackHits[i];
                 if (hit.collider == null) continue;
 
                 // 풀네임(ProjectT.Thread.Yarn): Yarn Spinner 패키지가 최상위 'Yarn' 네임스페이스를 점유해 CS0118 회피.
                 var yarn = hit.collider.GetComponentInParent<ProjectT.Thread.Yarn>();
                 if (yarn != null)
                 {
-                    yarn.TakeHit(buffHolder);
+                    yarn.TakeHit(_buffHolder);
                     return;
                 }
             }

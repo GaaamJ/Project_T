@@ -31,7 +31,7 @@ namespace ProjectT.Stage
 
         // 씬에 배치된 모든 Coordinate. Awake에서 자동 수집 —
         // 좌표는 씬 편집 시 자주 추가/제거되므로 인스펙터 수동 연결은 비효율적.
-        Coordinate[] coordinates;
+        Coordinate[] _coordinates;
 
         public StageState State { get; private set; } = StageState.Waiting;
 
@@ -42,19 +42,19 @@ namespace ProjectT.Stage
 
         void Awake()
         {
-            coordinates = FindObjectsByType<Coordinate>(FindObjectsSortMode.None);
+            _coordinates = FindObjectsByType<Coordinate>(FindObjectsSortMode.None);
 
             // 좌표 활성화 감지 — 6개 모두 활성화되면 자동 클리어.
             // OnActivated는 비활성 → 활성 전환 시에만 발화하므로 중복 카운트 걱정 없음.
-            foreach (var c in coordinates)
+            foreach (var c in _coordinates)
                 c.OnActivated += HandleCoordinateActivated;
         }
 
         void OnDestroy()
         {
-            if (coordinates != null)
+            if (_coordinates != null)
             {
-                foreach (var c in coordinates)
+                foreach (var c in _coordinates)
                     if (c != null) c.OnActivated -= HandleCoordinateActivated;
             }
         }
@@ -100,9 +100,9 @@ namespace ProjectT.Stage
             // 실패 직전 활성 좌표 수를 캡처 — 이후 c.Reset()으로 상태가 지워지기 전에 계산해야 정확.
             // 대사 트리거가 이 값을 "몇 개까지 갔었는지" 분기에 사용한다.
             int coordsActive = 0;
-            if (coordinates != null)
+            if (_coordinates != null)
             {
-                foreach (var c in coordinates)
+                foreach (var c in _coordinates)
                     if (c != null && c.IsActive) coordsActive++;
             }
             OnStageFailed?.Invoke(coordsActive);
@@ -120,7 +120,7 @@ namespace ProjectT.Stage
             }
 
             // 3) 좌표 비활성화. 스프라이트도 함께 초기화됨.
-            foreach (var c in coordinates)
+            foreach (var c in _coordinates)
                 if (c != null) c.Reset();
 
             // 4) 플레이어를 시작 구역 중앙으로 워프.
@@ -156,7 +156,7 @@ namespace ProjectT.Stage
             if (State != StageState.InProgress) return;
 
             int activeCount = 0;
-            foreach (var c in coordinates)
+            foreach (var c in _coordinates)
                 if (c != null && c.IsActive) activeCount++;
 
             if (activeCount >= 6)
