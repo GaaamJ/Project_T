@@ -31,7 +31,7 @@ namespace ProjectT.Stage
 
         // 씬에 배치된 모든 Coordinate. Awake에서 자동 수집 —
         // 좌표는 씬 편집 시 자주 추가/제거되므로 인스펙터 수동 연결은 비효율적.
-        Coordinate[] __coordinates;
+        Coordinate[] _coordinates;
 
         public StageState State { get; private set; } = StageState.Waiting;
 
