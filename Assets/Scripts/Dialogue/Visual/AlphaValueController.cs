@@ -1,11 +1,10 @@
 using UnityEngine;
 using Yarn.Unity;
 
-// Canvas Group의 알파값을 조정하는 클래스
 public class AlphaValueController : MonoBehaviour
 {
-    [SerializeField] private DialogueRunner dialogueRunner;
-    [SerializeField] private CanvasGroup canvasGroups;
+    [SerializeField] DialogueRunner dialogueRunner;
+    [SerializeField] CanvasGroup canvasGroup;
 
     void OnEnable()
     {
@@ -13,13 +12,19 @@ public class AlphaValueController : MonoBehaviour
         dialogueRunner.onDialogueComplete.AddListener(Hide);
     }
 
-    private void Show() => canvasGroups.alpha = 1;
+    void OnDisable()
+    {
+        dialogueRunner.onDialogueStart.RemoveListener(Show);
+        dialogueRunner.onDialogueComplete.RemoveListener(Hide);
+    }
 
-    private void Hide() => canvasGroups.alpha = 0;
+    void Show() => canvasGroup.alpha = 1;
+
+    void Hide() => canvasGroup.alpha = 0;
 
     [YarnCommand("SetAlpha")]
     public void SetAlpha(float alpha)
     {
-        canvasGroups.alpha = alpha;
+        canvasGroup.alpha = alpha;
     }
 }

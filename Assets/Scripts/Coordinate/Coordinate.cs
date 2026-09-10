@@ -12,12 +12,12 @@ namespace ProjectT.Coordinate
         [SerializeField] Sprite blueSprite;
         [SerializeField] Sprite goldSprite;
 
-        SpriteRenderer sr;
+        SpriteRenderer _sr;
 
         // 인스펙터에서 지정한 비활성 외형 스프라이트를 캐시.
         // Reset() 시 null로 밀어버리면 리트라이 후 좌표가 화면에서 사라지는 버그가 생겨서
         // Awake 시점에 초기값을 붙잡아 뒀다가 리셋에서 복원한다.
-        Sprite initialSprite;
+        Sprite _initialSprite;
 
         public bool IsActive { get; private set; }
         public ThreadType BoundType { get; private set; }
@@ -27,8 +27,8 @@ namespace ProjectT.Coordinate
 
         void Awake()
         {
-            sr = GetComponent<SpriteRenderer>();
-            initialSprite = sr.sprite;
+            _sr = GetComponent<SpriteRenderer>();
+            _initialSprite = _sr.sprite;
         }
 
         // DetectZone이 범위 안의 홀더를 감지했을 때 호출.
@@ -55,24 +55,23 @@ namespace ProjectT.Coordinate
             if (target == null)
                 Debug.LogWarning($"[Coordinate] {newType} 스프라이트가 할당되지 않았습니다.");
 
-            sr.sprite = target;
+            _sr.sprite = target;
 
             if (firstActivation)
                 OnActivated?.Invoke(this);
 
             return true;
         }
-    
 
-// StageManager가 리트라이 시 호출. 좌표를 비활성 상태로 되돌리고 스프라이트도 초기화한다.
-// 이벤트를 발행하지 않는 이유: 리셋 자체는 게임플레이 반응이 아니라 상태 초기화이므로
-// OnActivated의 반대 개념(OnDeactivated)을 만들지 않고 단순 상태 리셋만 수행.
-public void Reset()
-{
-    IsActive = false;
-    // Awake에서 캐시한 초기(비활성) 스프라이트로 복원.
-    // null로 밀면 리트라이 후 좌표가 씬에서 보이지 않게 되므로 반드시 캐시값을 사용한다.
-    if (sr != null) sr.sprite = initialSprite;
-}
-}
+        // StageManager가 리트라이 시 호출. 좌표를 비활성 상태로 되돌리고 스프라이트도 초기화한다.
+        // 이벤트를 발행하지 않는 이유: 리셋 자체는 게임플레이 반응이 아니라 상태 초기화이므로
+        // OnActivated의 반대 개념(OnDeactivated)을 만들지 않고 단순 상태 리셋만 수행.
+        public void Reset()
+        {
+            IsActive = false;
+            // Awake에서 캐시한 초기(비활성) 스프라이트로 복원.
+            // null로 밀면 리트라이 후 좌표가 씬에서 보이지 않게 되므로 반드시 캐시값을 사용한다.
+            if (_sr != null) _sr.sprite = _initialSprite;
+        }
+    }
 }

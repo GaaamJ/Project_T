@@ -23,7 +23,7 @@ namespace ProjectT.Player
         [Tooltip("소모할 실 버프 홀더. 인스펙터에서 직접 연결.")]
         [SerializeField] ThreadBuffHolder buffHolder;
 
-        InputSystem_Actions actions;
+        InputSystem_Actions _actions;
 
         // 다른 시스템(HoldGaugeUI 등)이 감지 대상 여부를 판단할 수 있도록 노출.
         public DetectZone DetectZone => detectZone;
@@ -37,28 +37,28 @@ namespace ProjectT.Player
 
         void Awake()
         {
-            actions = new InputSystem_Actions();
+            _actions = new InputSystem_Actions();
         }
 
         void OnEnable()
         {
-            actions.Player.Enable();
-            actions.Player.Interact.started += OnInteractStarted;
-            actions.Player.Interact.performed += OnInteractPerformed;
-            actions.Player.Interact.canceled += OnInteractCanceled;
+            _actions.Player.Enable();
+            _actions.Player.Interact.started += OnInteractStarted;
+            _actions.Player.Interact.performed += OnInteractPerformed;
+            _actions.Player.Interact.canceled += OnInteractCanceled;
         }
 
         void OnDisable()
         {
-            actions.Player.Interact.started -= OnInteractStarted;
-            actions.Player.Interact.performed -= OnInteractPerformed;
-            actions.Player.Interact.canceled -= OnInteractCanceled;
-            actions.Player.Disable();
+            _actions.Player.Interact.started -= OnInteractStarted;
+            _actions.Player.Interact.performed -= OnInteractPerformed;
+            _actions.Player.Interact.canceled -= OnInteractCanceled;
+            _actions.Player.Disable();
         }
 
         void OnDestroy()
         {
-            actions?.Dispose();
+            _actions?.Dispose();
         }
 
         // started 는 버튼이 눌린 즉시 발생 → 게이지 UI가 표시를 시작하기 위한 신호로 사용.

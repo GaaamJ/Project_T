@@ -7,10 +7,10 @@ using ProjectT.Dialogue;
 // 대사 큐에 요청하도록 리팩토링 — IsDialogueRunning 가드 없이 큐가 순서를 관리.
 public class AskHelpTrigger : MonoBehaviour
 {
-    [SerializeField] private DialogueRunner dialogueRunner;
-    [SerializeField] private UmiaDialogueQueue dialogueQueue;
-    [SerializeField] private InputActionReference askHelpAction; // ` 키 바인딩
-    [SerializeField] private string askHelpYarnNode = "AskForHelp";
+    [SerializeField] DialogueRunner dialogueRunner;
+    [SerializeField] UmiaDialogueQueue dialogueQueue;
+    [SerializeField] InputActionReference askHelpAction; // ` 키 바인딩
+    [SerializeField] string askHelpYarnNode = "AskForHelp";
 
     void Update()
     {
