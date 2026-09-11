@@ -190,6 +190,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Recover"",
+                    ""type"": ""Button"",
+                    ""id"": ""a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -555,6 +564,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""action"": ""AskHelp"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b1c2d3e4-f5a6-4b7c-8d9e-0f1a2b3c4d5e"",
+                    ""path"": ""<Keyboard>/v"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard&Mouse"",
+                    ""action"": ""Recover"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -635,6 +655,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
         m_Player_Dialogue = m_Player.FindAction("Dialogue", throwIfNotFound: true);
         m_Player_AskHelp = m_Player.FindAction("AskHelp", throwIfNotFound: true);
+        m_Player_Recover = m_Player.FindAction("Recover", throwIfNotFound: true);
     }
 
     ~@InputSystem_Actions()
@@ -726,6 +747,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Sprint;
     private readonly InputAction m_Player_Dialogue;
     private readonly InputAction m_Player_AskHelp;
+    private readonly InputAction m_Player_Recover;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -781,6 +803,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/AskHelp".
         /// </summary>
         public InputAction @AskHelp => m_Wrapper.m_Player_AskHelp;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/Recover".
+        /// </summary>
+        public InputAction @Recover => m_Wrapper.m_Player_Recover;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -840,6 +866,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @AskHelp.started += instance.OnAskHelp;
             @AskHelp.performed += instance.OnAskHelp;
             @AskHelp.canceled += instance.OnAskHelp;
+            @Recover.started += instance.OnRecover;
+            @Recover.performed += instance.OnRecover;
+            @Recover.canceled += instance.OnRecover;
         }
 
         /// <summary>
@@ -884,6 +913,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @AskHelp.started -= instance.OnAskHelp;
             @AskHelp.performed -= instance.OnAskHelp;
             @AskHelp.canceled -= instance.OnAskHelp;
+            @Recover.started -= instance.OnRecover;
+            @Recover.performed -= instance.OnRecover;
+            @Recover.canceled -= instance.OnRecover;
         }
 
         /// <summary>
@@ -1066,5 +1098,12 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnAskHelp(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Recover" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnRecover(InputAction.CallbackContext context);
     }
 }

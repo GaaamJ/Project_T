@@ -104,6 +104,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Recover",
+                    "type": "Button",
+                    "id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -467,6 +476,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "AskHelp",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b1c2d3e4-f5a6-4b7c-8d9e-0f1a2b3c4d5e",
+                    "path": "<Keyboard>/v",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Recover",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

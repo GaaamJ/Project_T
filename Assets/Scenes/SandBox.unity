@@ -17799,6 +17799,7 @@ Transform:
   - {fileID: 987085801}
   - {fileID: 1772077105}
   - {fileID: 1435568695}
+  - {fileID: 861806158}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &473724997
@@ -19378,6 +19379,52 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1824449862683913820, guid: 4d3b27b9c27925f499df835d009854a3, type: 3}
   m_PrefabInstance: {fileID: 845231520}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &861806156
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 861806158}
+  - component: {fileID: 861806157}
+  m_Layer: 0
+  m_Name: HealthSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &861806157
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 861806156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cba39a9410d9fd74bbe19f0c4e81b0c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectT.Player.HealthSystem
+  maxHealth: 2
+  enableDebugHotkey: 1
+--- !u!4 &861806158
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 861806156}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 432701755}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &865228903
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -32082,6 +32129,7 @@ MonoBehaviour:
   - {fileID: 1455187642}
   - {fileID: 1559354869}
   startZoneCenter: {fileID: 1045844965}
+  healthSystem: {fileID: 861806157}
 --- !u!4 &1435568695
 Transform:
   m_ObjectHideFlags: 0
@@ -32173,6 +32221,7 @@ GameObject:
   - component: {fileID: 1455187645}
   - component: {fileID: 1455187644}
   - component: {fileID: 1455187647}
+  - component: {fileID: 1455187648}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -32399,6 +32448,22 @@ MonoBehaviour:
   holder: {fileID: 1455187642}
   autoSequence: 0
   autoStepDelay: 2
+--- !u!114 &1455187648
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1455187637}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c10109771399b5e458f0f82f9572017d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectT.Player.PlayerRecovery
+  healthSystem: {fileID: 861806157}
+  playerAttack: {fileID: 1455187645}
+  focusDuration: 2
+  moveThreshold: 0.1
 --- !u!1001 &1475210563
 PrefabInstance:
   m_ObjectHideFlags: 0

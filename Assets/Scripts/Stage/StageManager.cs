@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using ProjectT.Thread;
+using ProjectT.Player;
 
 namespace ProjectT.Stage
 {
@@ -28,6 +29,9 @@ namespace ProjectT.Stage
         [SerializeField] ThreadBuffHolder[] buffHolders;
         // 리트라이 시 플레이어를 워프시킬 목적지. StartZone 중앙을 가리키게 세팅.
         [SerializeField] Transform startZoneCenter;
+        // 체력 시스템. 체력이 0에 도달하면 실패, 실패/리셋 시 최대 체력으로 복구.
+        // 씬에 없어도 스테이지 흐름이 죽지 않도록 옵션 참조 — 초기 씬 세팅 편의성.
+        [SerializeField] HealthSystem healthSystem;
 
         // 씬에 배치된 모든 Coordinate. Awake에서 자동 수집 —
         // 좌표는 씬 편집 시 자주 추가/제거되므로 인스펙터 수동 연결은 비효율적.
@@ -48,6 +52,11 @@ namespace ProjectT.Stage
             // OnActivated는 비활성 → 활성 전환 시에만 발화하므로 중복 카운트 걱정 없음.
             foreach (var c in _coordinates)
                 c.OnActivated += HandleCoordinateActivated;
+
+            // 체력 0 도달 시 스테이지 실패 트리거. HealthSystem이 StageManager를 직접 참조하지 않도록
+            // 여기서 이벤트를 구독하는 방향으로 배선한다.
+            if (healthSystem != null)
+                healthSystem.OnDied += HandleHealthDied;
         }
 
         void OnDestroy()
@@ -57,6 +66,16 @@ namespace ProjectT.Stage
                 foreach (var c in _coordinates)
                     if (c != null) c.OnActivated -= HandleCoordinateActivated;
             }
+
+            if (healthSystem != null)
+                healthSystem.OnDied -= HandleHealthDied;
+        }
+
+        void HandleHealthDied()
+        {
+            // OnDied는 상태 무관하게 발화될 수 있음. TriggerStageFail이 State != InProgress면
+            // 자동으로 무시하므로 여기서 추가 방어는 불필요.
+            TriggerStageFail();
         }
 
         // StartZoneTrigger가 플레이어 이탈을 감지하면 호출.
@@ -145,7 +164,11 @@ namespace ProjectT.Stage
                 }
             }
 
-            // 5) 상태 → Waiting. StartZone 재이탈 시 InProgress로 전환된다.
+            // 5) 체력 최대 복구. 실패로 진입한 경우와 디버그 리트라이 모두에서 동일하게 적용된다.
+            if (healthSystem != null)
+                healthSystem.ResetHealth();
+
+            // 6) 상태 → Waiting. StartZone 재이탈 시 InProgress로 전환된다.
             State = StageState.Waiting;
             Debug.Log("[StageManager] 스테이지 리셋 → Waiting");
         }
