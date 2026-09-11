@@ -338,7 +338,12 @@ namespace ProjectT.UI
                 yield break;
             }
 
-            float startFill = fillImage.fillAmount;
+            // fillImage.fillAmount는 Image.type=Filled 전제이지만 이 프로젝트는 offsetMax로 폭을 조작하므로
+            // 실제 현재 fill 비율은 SetFill()의 역수식으로 계산해야 한다.
+            // SetFill()에서 offsetMax.x = -(1 - fill) * trackWidth 이므로
+            // fill = 1 + offsetMax.x / trackWidth  (offsetMax.x는 0 이하)
+            float trackWidth = fillTrackRect != null ? fillTrackRect.rect.width : 0f;
+            float startFill = trackWidth > 0f ? 1f + fillRect.offsetMax.x / trackWidth : 0f;
             // 취소 시점의 실제 체력 비율. 체력 0이면 deadFill, 1이면 halfFill.
             float targetFill = healthSystem.CurrentHealth <= 0 ? deadFill : halfFill;
 
