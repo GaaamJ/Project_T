@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using ProjectT.Stage;
 
 namespace ProjectT.Player
 {
@@ -19,6 +20,13 @@ namespace ProjectT.Player
 
         [Tooltip("피격 후 무적 지속 시간(초). 이 시간 동안 추가 피격은 무시된다.")]
         [SerializeField] float invincibilityDuration = 0.5f;
+
+        // 체력 0 도달 시 실패를 트리거할 대상. 씬에서 직접 연결한다.
+        // 왜 이벤트 구독 방식이 아니라 직접 참조인가:
+        // - 실패 트리거는 "죽음 → 스테이지 실패"라는 고정 연결이며, 다른 구독자가 필요 없다.
+        // - 씬 참조 연결이 명시적이라 유실 시 인스펙터에서 즉시 확인 가능.
+        // - 씬에 스테이지 매니저가 없는 상황(테스트 씬 등)에서도 null 체크로 안전하게 무시된다.
+        [SerializeField] StageManager stageManager;
 
         [Header("Debug")]
         [Tooltip("임시 검증용. 활성화 시 H 키로 TakeDamage(1)를 호출한다. 최종 빌드에서는 끈다.")]
@@ -87,9 +95,8 @@ namespace ProjectT.Player
             }
         }
 
-        // 피격 시 호출. 죽음(0 도달) 시 OnDied만 발화하고, 실제 스테이지 실패 처리는
-        // StageManager가 이벤트를 구독해 TriggerStageFail을 호출하도록 위임 —
-        // HealthSystem이 StageManager에 직접 의존하지 않도록.
+        // 피격 시 호출. 죽음(0 도달) 시 OnDied 이벤트 발화 후 stageManager.TriggerStageFail을 직접 호출한다.
+        // 실패는 "죽음"의 고정 결과이므로 이벤트 구독 방식보다 직접 호출이 배선을 단순하게 유지한다.
         public void TakeDamage(int amount)
         {
             if (amount <= 0) return;
@@ -113,6 +120,11 @@ namespace ProjectT.Player
                 OnDied?.Invoke();
                 // 죽은 순간에는 무적을 시작하지 않는다 — 이미 IsDead가 후속 TakeDamage를 막고,
                 // 사망 후 무적 상태가 남으면 ResetHealth 이후에도 의도치 않은 무적으로 남을 수 있다.
+
+                // 스테이지 실패 트리거. 씬에 StageManager가 없는 경우(단독 테스트)에는 조용히 무시.
+                // OnDied 이벤트 구독자가 먼저 실행된 뒤 호출되므로, 실패 시퀀스에서 마지막 훅으로 동작한다.
+                if (stageManager != null)
+                    stageManager.TriggerStageFail();
                 return;
             }
 

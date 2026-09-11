@@ -19486,6 +19486,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectT.Player.HealthSystem
   maxHealth: 2
   invincibilityDuration: 0.5
+  stageManager: {fileID: 1435568694}
   enableDebugHotkey: 1
 --- !u!4 &861806158
 Transform:
