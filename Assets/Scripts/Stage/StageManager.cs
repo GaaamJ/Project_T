@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using ProjectT.Thread;
+using ProjectT.Player;
 
 namespace ProjectT.Stage
 {
@@ -28,6 +29,10 @@ namespace ProjectT.Stage
         [SerializeField] ThreadBuffHolder[] buffHolders;
         // 리트라이 시 플레이어를 워프시킬 목적지. StartZone 중앙을 가리키게 세팅.
         [SerializeField] Transform startZoneCenter;
+        // 체력 시스템. 실패/리셋 시 최대 체력으로 복구하기 위해 참조.
+        // 실패 트리거 자체는 HealthSystem이 자신의 stageManager 필드로 직접 호출하므로, 여기서는 리셋 호출용으로만 사용.
+        // 씬에 없어도 스테이지 흐름이 죽지 않도록 옵션 참조 — 초기 씬 세팅 편의성.
+        [SerializeField] HealthSystem healthSystem;
 
         // 씬에 배치된 모든 Coordinate. Awake에서 자동 수집 —
         // 좌표는 씬 편집 시 자주 추가/제거되므로 인스펙터 수동 연결은 비효율적.
@@ -145,7 +150,11 @@ namespace ProjectT.Stage
                 }
             }
 
-            // 5) 상태 → Waiting. StartZone 재이탈 시 InProgress로 전환된다.
+            // 5) 체력 최대 복구. 실패로 진입한 경우와 디버그 리트라이 모두에서 동일하게 적용된다.
+            if (healthSystem != null)
+                healthSystem.ResetHealth();
+
+            // 6) 상태 → Waiting. StartZone 재이탈 시 InProgress로 전환된다.
             State = StageState.Waiting;
             Debug.Log("[StageManager] 스테이지 리셋 → Waiting");
         }

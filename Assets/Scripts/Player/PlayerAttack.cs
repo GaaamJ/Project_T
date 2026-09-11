@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using ProjectT.Thread;
@@ -13,6 +14,11 @@ namespace ProjectT.Player
         [SerializeField] float attackRange = 3f;
         [Tooltip("공격에 맞힐 대상 레이어 (Yarn 레이어 지정)")]
         [SerializeField] LayerMask attackMask;
+
+        // 공격 입력이 실제로 수행된 순간 발화. 회복 집중(PlayerRecovery)의 취소 훅으로 쓰인다.
+        // 명중 여부와 무관하게 "공격 액션이 트리거됐다"는 사실만 전달한다 —
+        // 기획서상 취소 조건은 "공격"(=공격 시도)이지 "공격 명중"이 아니기 때문.
+        public event Action OnAttacked;
 
         ThreadBuffHolder _buffHolder;
         InputSystem_Actions _actions;
@@ -55,6 +61,10 @@ namespace ProjectT.Player
 
         void OnAttackPerformed(InputAction.CallbackContext ctx)
         {
+            // 회복 집중 취소 훅. 공격 액션이 발화된 시점 자체가 취소 트리거이므로
+            // Raycast/Camera 유효성보다 먼저 발화한다(공격 액션이 감지된 순간에 취소되는 게 맞음).
+            OnAttacked?.Invoke();
+
             var cam = Camera.main;
             if (cam == null) return;
 
