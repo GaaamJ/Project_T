@@ -41,8 +41,20 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Floor
+    uniqueID: 1877268419
+    locked: 0
+  - name: BackWall
+    uniqueID: 396063829
+    locked: 0
   - name: BackProp
     uniqueID: 1140610011
+    locked: 0
+  - name: Umia
+    uniqueID: 3563124243
+    locked: 0
+  - name: FrontWall
+    uniqueID: 2568059571
     locked: 0
   - name: Player
     uniqueID: 611459297
