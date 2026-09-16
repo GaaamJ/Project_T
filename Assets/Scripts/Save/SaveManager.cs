@@ -59,10 +59,18 @@ namespace ProjectT.Save
 
         // 현재 Data 를 JSON 으로 직렬화해 SavePath 에 덮어쓴다.
         // prettyPrint=true 는 디버깅 편의를 위한 선택이며 파일 크기는 세이브 규모상 무시 가능.
+        // 쓰기 실패(디스크 꽉 참, 권한 없음 등) 시 크래시 대신 경고만 남긴다.
         public static void Save()
         {
-            string json = JsonUtility.ToJson(Data, true);
-            File.WriteAllText(SavePath, json);
+            try
+            {
+                string json = JsonUtility.ToJson(Data, true);
+                File.WriteAllText(SavePath, json);
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[SaveManager] save.json 저장 실패: {e.Message}");
+            }
         }
     }
 }
