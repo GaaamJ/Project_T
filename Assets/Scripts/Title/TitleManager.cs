@@ -1,3 +1,4 @@
+using ProjectT.Save;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -5,7 +6,7 @@ using UnityEngine.UI;
 namespace ProjectT.Title
 {
     // 타이틀 화면의 Play 버튼을 처리하는 단일 매니저.
-    // PlayerPrefs 의 "PrologueDone" 키 유무만으로 다음 씬을 분기한다.
+    // SaveManager.Data.prologueDone 로 다음 씬을 분기한다.
     // EncounterDone 등의 추가 플래그는 사용하지 않는다 — EncounterScene 내부에서
     // 이벤트 스킵 여부를 자체 판단하기 때문에 타이틀에서는 관여하지 않는다.
     public class TitleManager : MonoBehaviour
@@ -15,12 +16,16 @@ namespace ProjectT.Title
         const string OvertureSceneName = "Overture";
         const string EncounterSceneName = "Encounter";
 
-        // PlayerPrefs 키. 프롤로그(Overture) 완주 여부만 저장한다.
-        // 값 자체는 관심 없고 HasKey 로 존재 여부만 판정.
-        const string PrologueDoneKey = "PrologueDone";
-
         [Tooltip("타이틀의 Play 버튼. 클릭 시 다음 씬으로 이동한다.")]
         [SerializeField] Button playButton;
+
+        void Awake()
+        {
+            // 타이틀 씬이 게임 진입점이므로 여기서 세이브를 최초 로드한다.
+            // 이후 다른 씬으로 이동해도 SaveManager.Data 는 static 이라 유지된다.
+            // 파일이 없으면 SaveManager 내부에서 기본값으로 초기화하므로 여기선 결과 확인만.
+            SaveManager.Load();
+        }
 
         void OnEnable()
         {
@@ -46,13 +51,13 @@ namespace ProjectT.Title
             if (playButton != null)
                 playButton.interactable = false;
 
-            // PrologueDone 이 없다 = 프롤로그를 아직 안 봤다 → Overture 로 진입.
-            // PrologueDone 이 있다 = 프롤로그를 이미 봤다 → 바로 Encounter 로 진입.
-            string nextScene = PlayerPrefs.HasKey(PrologueDoneKey)
+            // prologueDone == false = 프롤로그를 아직 안 봤다 → Overture 로 진입.
+            // prologueDone == true  = 프롤로그를 이미 봤다 → 바로 Encounter 로 진입.
+            string nextScene = SaveManager.Data.prologueDone
                 ? EncounterSceneName
                 : OvertureSceneName;
 
-            Debug.Log($"[TitleManager] Play 클릭 → '{nextScene}' 로드");
+            Debug.Log($"[TitleManager] Play 클릭 → '{nextScene}' 로드 (prologueDone={SaveManager.Data.prologueDone})");
             SceneManager.LoadScene(nextScene);
         }
     }
