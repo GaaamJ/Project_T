@@ -11,12 +11,14 @@ public class EventCatalogDebugger : MonoBehaviour
         var state = new EventState();
 
         Log("EventA", catalog.GetById("EventA")?.CanRun(state));
+        Log("EventEx", catalog.GetById("EventEx")?.CanRun(state));
         Log("EventB", catalog.GetById("EventB")?.CanRun(state));
         Log("EventC", catalog.GetById("EventC")?.CanRun(state));
         Log("FirstEncounter", catalog.GetById("FirstEncounter")?.CanRun(state));
 
         state.MarkCompleted("EventA");
-        Debug.Log("[EventCatalogDebugger] EventA 완료 처리 후:");
+        state.MarkCompleted("EventEx");
+        Debug.Log("[EventCatalogDebugger] EventA & EventEx 완료 처리 후:");
         Log("EventB", catalog.GetById("EventB")?.CanRun(state));
         Log("EventC", catalog.GetById("EventC")?.CanRun(state));
 
