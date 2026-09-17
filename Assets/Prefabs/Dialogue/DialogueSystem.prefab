@@ -115,7 +115,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AlphaValueController
   dialogueRunner: {fileID: 8580549678268193905}
-  canvasGroups: {fileID: 4304434176655751610}
+  canvasGroup: {fileID: 4304434176655751610}
 --- !u!1 &910558305908546140
 GameObject:
   m_ObjectHideFlags: 0
@@ -475,7 +475,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AlphaValueController
   dialogueRunner: {fileID: 8580549678268193905}
-  canvasGroups: {fileID: 7359851999316644694}
+  canvasGroup: {fileID: 7359851999316644694}
 --- !u!1 &1959098016170282566
 GameObject:
   m_ObjectHideFlags: 0
@@ -603,6 +603,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AskHelpTrigger
   dialogueRunner: {fileID: 8580549678268193905}
+  dialogueQueue: {fileID: 0}
   askHelpAction: {fileID: 6014311302800533823, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   askHelpYarnNode: AskForHelp
 --- !u!1 &2687782343961581468
@@ -654,7 +655,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4bec29c0a230741bdac901dba8da47ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: YarnSpinner.Unity::Yarn.Unity.DialogueRunner
-  yarnProject: {fileID: 7545569452688597077, guid: 85a29dbd936aa874ea3b2026ecf1f039, type: 3}
+  yarnProject: {fileID: 7545569452688597077, guid: 3b01fc2133df9df4d9b5bdb3825affc3, type: 3}
   variableStorage: {fileID: 2499379048923742992}
   lineProvider: {fileID: 0}
   saliencyStrategy: 0
@@ -663,7 +664,7 @@ MonoBehaviour:
   - {fileID: 9117672380852714740}
   verboseLogging: 0
   autoStart: 0
-  startNode: OptionTest
+  startNode: FirstEncounter
   runSelectedOptionAsLine: 0
   allowOptionFallthrough: 1
   onNodeStart:
