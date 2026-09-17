@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Yarn.Unity;
 
-public class DialogueSpeakerImageController : MonoBehaviour, IAlphaControllable, IImageChangable
+public class DialogueSpeakerImageController : MonoBehaviour, IAlphaControllable, IImageChangeable
 {
     [SerializeField] CanvasGroup canvasGroup;
     [SerializeField] Image image;
