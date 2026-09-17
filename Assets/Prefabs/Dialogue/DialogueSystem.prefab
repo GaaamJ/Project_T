@@ -103,6 +103,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DialogueSpeakerImageController
   canvasGroup: {fileID: 4304434176655751610}
   image: {fileID: 4718410963272639119}
+  dialogueRunner: {fileID: 8580549678268193905}
 --- !u!1 &910558305908546140
 GameObject:
   m_ObjectHideFlags: 0
@@ -462,6 +463,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DialogueBackgroundController
   canvasGroup: {fileID: 7359851999316644694}
+  dialogueRunner: {fileID: 8580549678268193905}
 --- !u!1 &1959098016170282566
 GameObject:
   m_ObjectHideFlags: 0
