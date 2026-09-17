@@ -23,31 +23,14 @@ namespace ProjectT.Overture
 
         void Awake()
         {
-            // onDialogueComplete 는 UnityEvent 라서 인스펙터로도 연결 가능하지만,
-            // 코드로 등록해서 씬 파일과 스크립트 사이의 참조 누락 가능성을 줄인다.
-            // OnDestroy 에서 반드시 짝을 맞춰 해제한다.
-            if (dialogueRunner != null)
-                dialogueRunner.onDialogueComplete.AddListener(OnDialogueComplete);
-            else
+            if (dialogueRunner == null)
                 Debug.LogWarning("[OvertureManager] dialogueRunner 참조가 비어 있습니다.");
-        }
-
-        void OnDestroy()
-        {
-            // 씬 전환 시 DialogueRunner 도 함께 파괴되지만, 다른 매니저가 붙어 있을 수 있어
-            // 명시적으로 해제해 이벤트 누수 위험을 원천 차단한다.
-            if (dialogueRunner != null)
-                dialogueRunner.onDialogueComplete.RemoveListener(OnDialogueComplete);
         }
 
         void Start()
         {
             if (dialogueRunner == null) return;
 
-            // $pc_username 은 "게임 밖 사용자 이름" 이라 세이브 대상이 아님.
-            // 매 씬 진입마다 최신 값을 다시 주입한다.
-            // Environment.UserName 이 예외로 실패할 가능성은 극히 낮지만
-            // 그래도 대사 흐름이 막히지 않도록 빈 문자열로 폴백.
             string osUserName;
             try
             {
@@ -59,19 +42,28 @@ namespace ProjectT.Overture
                 osUserName = string.Empty;
             }
 
-            // 노드가 시작하기 전에 변수를 세팅해야 첫 대사에서 {$pc_username} 이 올바르게 치환된다.
             dialogueRunner.VariableStorage.SetValue("$pc_username", osUserName);
-
-            // 자동 검증 지원: $pc_username 주입 결과와 시작 노드를 콘솔에서 확인할 수 있도록 로그.
             Debug.Log($"[OvertureManager] $pc_username='{osUserName}' 주입 → '{StartNodeName}' 노드 시작");
 
+            // YarnTask.CompletedTask 가 AwaitableCompletionSource 를 Reset() 으로
+            // 즉시 재활용하므로, StartDialogue 내부의 await WhenAll(CompletedTask...)
+            // 이 영구 hang 된다. StartDialogue 는 WhenAll 이전 단계(SetProgram, SetNode,
+            // OnDialogueStartedAsync 등)를 동기로 완료하므로, 반환 후 Continue() 를 직접
+            // 호출해 대사를 시작한다. 같은 이유로 onDialogueComplete 이벤트도 발화되지 않아
+            // DialogueCompleteHandler 를 직접 후킹한다.
+            var origCompleteHandler = dialogueRunner.Dialogue.DialogueCompleteHandler;
+            dialogueRunner.Dialogue.DialogueCompleteHandler = () =>
+            {
+                origCompleteHandler?.Invoke();
+                OnDialogueComplete();
+            };
+
             dialogueRunner.StartDialogue(StartNodeName);
+            dialogueRunner.Dialogue.Continue();
         }
 
         void OnDialogueComplete()
         {
-            // 대화 완료 = 프롤로그 완주. TitleManager 가 이 플래그로 다음 진입 씬을 분기하므로
-            // 저장까지 확실히 마친 뒤 씬 전환한다.
             SaveManager.Data.prologueDone = true;
             SaveManager.Save();
 
