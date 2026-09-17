@@ -1,0 +1,20 @@
+title: Overture_Start
+---
+// 프롤로그 대사에서 사용하는 변수들.
+// Yarn v3 컴파일러는 노드 밖 declare 를 허용하지 않으므로,
+// 이 시작 노드의 첫 줄에 몰아 두어 실제로 쓰이는 흐름 바로 앞에 문서화한다.
+// $pc_username : OvertureManager 가 Start() 시점에 Environment.UserName 을 주입.
+// $in_game_name : NameInputView 가 확인 버튼/Enter 로 입력받은 값을 주입.
+<<declare $pc_username = "" as string>>
+<<declare $in_game_name = "" as string>>
+
+// 도입 문구 (TODO)
+셀레포티페: (TODO)
+// 누군가 {$pc_username} 호칭 (TODO)
+셀레포티페: (TODO)
+// 자기소개 (TODO)
+셀레포티페: (TODO)
+<<ask_player_name>>
+// {$in_game_name} 호칭 + 소녀 소원 부탁 (TODO)
+셀레포티페: (TODO)
+===
