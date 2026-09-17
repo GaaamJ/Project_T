@@ -11,9 +11,8 @@ GameObject:
   - component: {fileID: 4224901410391805946}
   - component: {fileID: 962252863038627914}
   - component: {fileID: 4718410963272639119}
-  - component: {fileID: 506215005130169704}
   - component: {fileID: 4304434176655751610}
-  - component: {fileID: 7574575847810595403}
+  - component: {fileID: 6532422605411523738}
   m_Layer: 5
   m_Name: SpeakerImage
   m_TagString: Untagged
@@ -78,18 +77,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &506215005130169704
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 443966975439005069}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 217d5573593f07f49b16f338c566c9d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PortraitChanger
 --- !u!225 &4304434176655751610
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -102,7 +89,7 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
---- !u!114 &7574575847810595403
+--- !u!114 &6532422605411523738
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -111,11 +98,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 443966975439005069}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 01eee597d50792447aa21b7fa2e719f0, type: 3}
+  m_Script: {fileID: 11500000, guid: a42bb2bf094c1fd4fa8772cd3bf224aa, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AlphaValueController
-  dialogueRunner: {fileID: 8580549678268193905}
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueSpeakerImageController
   canvasGroup: {fileID: 4304434176655751610}
+  image: {fileID: 4718410963272639119}
 --- !u!1 &910558305908546140
 GameObject:
   m_ObjectHideFlags: 0
@@ -385,7 +372,7 @@ GameObject:
   - component: {fileID: 8080717050662266275}
   - component: {fileID: 3326276646064941373}
   - component: {fileID: 7359851999316644694}
-  - component: {fileID: 3645281540718356065}
+  - component: {fileID: 8373789162378820524}
   m_Layer: 5
   m_Name: Background
   m_TagString: Untagged
@@ -462,7 +449,7 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
---- !u!114 &3645281540718356065
+--- !u!114 &8373789162378820524
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -471,10 +458,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1925526302391503828}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 01eee597d50792447aa21b7fa2e719f0, type: 3}
+  m_Script: {fileID: 11500000, guid: 694370a2ed32d9945be938f51f87450c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AlphaValueController
-  dialogueRunner: {fileID: 8580549678268193905}
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueBackgroundController
   canvasGroup: {fileID: 7359851999316644694}
 --- !u!1 &1959098016170282566
 GameObject:
