@@ -1,1 +1,10 @@
-﻿
+title: FirstEncounter
+---
+<<SetBgAlpha 1>>
+<<SetSpeakerAlpha 1>>
+<<ChangeImage Umia neutral>>
+Node01 대사입니다.
+Node02 대사입니다.
+<<SetBgAlpha 0>>
+<<SetSpeakerAlpha 0>>
+===
