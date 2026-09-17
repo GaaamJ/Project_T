@@ -116,6 +116,12 @@ namespace ProjectT.Event
                 return false;
             }
 
+            if (!dialogueRunner.Dialogue.NodeExists(definition.yarnNode))
+            {
+                Debug.LogWarning($"[Step4][EventRunner] 거부 (Yarn Node 없음): {definition.yarnNode}");
+                return false;
+            }
+
             _isRunning = true;
             _runningId = definition.id;
 
