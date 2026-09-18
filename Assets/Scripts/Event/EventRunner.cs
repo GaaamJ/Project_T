@@ -45,7 +45,7 @@ namespace ProjectT.Event
         {
             if (dialogueRunner == null)
             {
-                Debug.LogWarning("[Step4][EventRunner] dialogueRunner 참조가 비어 있습니다.");
+                Debug.LogWarning("[EventRunner] dialogueRunner 참조가 비어 있습니다.");
                 return;
             }
 
@@ -67,32 +67,32 @@ namespace ProjectT.Event
         // 이벤트 실행 요청. 성공 여부(true=Yarn 시작함)를 반환해 호출자가 부가 처리를 하고 싶다면 활용.
         public bool TryRun(string eventId)
         {
-            Debug.Log($"[Step4][EventRunner] TryRun 요청: {eventId}");
+            Debug.Log($"[EventRunner] TryRun 요청: {eventId}");
 
             // 이미 실행 중 → 즉시 거부. 완료 상태로 전환되지 않고 로그만 남긴다.
             if (_isRunning)
             {
-                Debug.Log($"[Step4][EventRunner] 거부 (실행 중): {eventId}");
+                Debug.Log($"[EventRunner] 거부 (실행 중): {eventId}");
                 return false;
             }
 
             if (catalog == null)
             {
-                Debug.LogWarning("[Step4][EventRunner] catalog 참조가 비어 있습니다.");
+                Debug.LogWarning("[EventRunner] catalog 참조가 비어 있습니다.");
                 return false;
             }
 
             var definition = catalog.GetById(eventId);
             if (definition == null)
             {
-                Debug.LogWarning($"[Step4][EventRunner] 거부 (카탈로그 미존재): {eventId}");
+                Debug.LogWarning($"[EventRunner] 거부 (카탈로그 미존재): {eventId}");
                 return false;
             }
 
             var session = GameSessionManager.Instance;
             if (session == null)
             {
-                Debug.LogWarning("[Step4][EventRunner] GameSessionManager 인스턴스가 없습니다. 씬에 배치되었는지 확인하세요.");
+                Debug.LogWarning("[EventRunner] GameSessionManager 인스턴스가 없습니다. 씬에 배치되었는지 확인하세요.");
                 return false;
             }
 
@@ -104,28 +104,28 @@ namespace ProjectT.Event
                 // 여기서는 왜 거부됐는지까지 로깅하지는 않지만, 완료 케이스는 가장 흔한 시나리오라
                 // 별도 로그로 구분해 준다.
                 if (session.EventState.IsCompleted(definition.id))
-                    Debug.Log($"[Step4][EventRunner] 거부 (이미 완료): {eventId}");
+                    Debug.Log($"[EventRunner] 거부 (이미 완료): {eventId}");
                 else
-                    Debug.Log($"[Step4][EventRunner] 거부 (조건 미충족): {eventId}");
+                    Debug.Log($"[EventRunner] 거부 (조건 미충족): {eventId}");
                 return false;
             }
 
             if (dialogueRunner == null)
             {
-                Debug.LogWarning("[Step4][EventRunner] dialogueRunner 참조가 비어 있습니다.");
+                Debug.LogWarning("[EventRunner] dialogueRunner 참조가 비어 있습니다.");
                 return false;
             }
 
             if (!dialogueRunner.Dialogue.NodeExists(definition.yarnNode))
             {
-                Debug.LogWarning($"[Step4][EventRunner] 거부 (Yarn Node 없음): {definition.yarnNode}");
+                Debug.LogWarning($"[EventRunner] 거부 (Yarn Node 없음): {definition.yarnNode}");
                 return false;
             }
 
             _isRunning = true;
             _runningId = definition.id;
 
-            Debug.Log($"[Step4][EventRunner] 실행 시작: {_runningId}");
+            Debug.Log($"[EventRunner] 실행 시작: {_runningId}");
 
             // Yarn v3 우회: StartDialogue 만으로는 첫 라인이 재생되지 않는 알려진 버그가 있어
             // 이어서 Continue() 를 명시적으로 호출한다.
@@ -152,7 +152,7 @@ namespace ProjectT.Event
             var session = GameSessionManager.Instance;
             if (session == null)
             {
-                Debug.LogWarning("[Step4][EventRunner] 완료 처리 시 GameSessionManager 를 찾지 못했습니다.");
+                Debug.LogWarning("[EventRunner] 완료 처리 시 GameSessionManager 를 찾지 못했습니다.");
                 return;
             }
 
@@ -162,8 +162,8 @@ namespace ProjectT.Event
             session.EventState.Save(SaveManager.Data);
             SaveManager.Save();
 
-            Debug.Log($"[Step4][EventRunner] 완료 기록: {completedId}");
-            Debug.Log("[Step4][EventRunner] 저장 완료");
+            Debug.Log($"[EventRunner] 완료 기록: {completedId}");
+            Debug.Log("[EventRunner] 저장 완료");
         }
     }
 }

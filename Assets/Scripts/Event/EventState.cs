@@ -14,7 +14,7 @@ public class EventState
     public void MarkCompleted(string id)
     {
         _completedIds.Add(id);
-        Debug.Log($"[Step3][EventState] 완료 기록: {id}");
+        Debug.Log($"[EventState] 완료 기록: {id}");
     }
 
     // SaveData 의 List<string> 을 내부 HashSet 으로 흡수한다.
@@ -27,7 +27,7 @@ public class EventState
             foreach (var id in data.completedEventIds)
                 _completedIds.Add(id);
         }
-        Debug.Log($"[Step3][EventState] 로드: 완료된 이벤트 {_completedIds.Count}개" +
+        Debug.Log($"[EventState] 로드: 완료된 이벤트 {_completedIds.Count}개" +
                   (_completedIds.Count > 0 ? $" — {string.Join(", ", _completedIds)}" : ""));
     }
 
