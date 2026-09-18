@@ -1,6 +1,8 @@
 title: FirstEncounter
 ---
 <<SetBgAlpha 1>>
+<<Cutscene "city_ruins">>
+<<Cutscene "meteor_strike">>
 <<SetSpeakerAlpha 1>>
 <<ChangeImage Umia neutral>>
 Node01 대사입니다.
