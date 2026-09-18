@@ -127,10 +127,7 @@ namespace ProjectT.Event
 
             Debug.Log($"[EventRunner] 실행 시작: {_runningId}");
 
-            // Yarn v3 우회: StartDialogue 만으로는 첫 라인이 재생되지 않는 알려진 버그가 있어
-            // 이어서 Continue() 를 명시적으로 호출한다.
             dialogueRunner.StartDialogue(definition.yarnNode);
-            dialogueRunner.Dialogue.Continue();
 
             return true;
         }
