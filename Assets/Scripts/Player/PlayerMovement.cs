@@ -18,7 +18,6 @@ namespace ProjectT.Player
 
         // 8방향. 각 성분은 -1, 0, 1. 멈춰 있으면 마지막 값을 유지한다.
         public Vector2Int Facing { get; private set; } = Vector2Int.down;
-        public bool IsMoving { get; private set; }
 
         void Awake()
         {
@@ -29,26 +28,36 @@ namespace ProjectT.Player
 
         void OnEnable()
         {
+            // 액션 애셋을 여러 곳이 공유하므로 OnDisable에서 Disable()하면 다른 사용처의 입력도 끊긴다.
             moveAction.action.Enable();
         }
 
         void OnDisable()
         {
             body.linearVelocity = Vector2.zero;
-            IsMoving = false;
         }
 
         void Update()
         {
-            Vector2Int direction = IsInputLocked() ? Vector2Int.zero : ToDirection(moveAction.action.ReadValue<Vector2>());
-            IsMoving = direction != Vector2Int.zero;
-            UpdateFacing(direction);
+            UpdateFacing(ReadDirection());
         }
 
         void FixedUpdate()
         {
-            Vector2Int direction = IsInputLocked() ? Vector2Int.zero : ToDirection(moveAction.action.ReadValue<Vector2>());
-            body.linearVelocity = ((Vector2)direction).normalized * moveSpeed;
+            body.linearVelocity = ((Vector2)ReadDirection()).normalized * moveSpeed;
+        }
+
+        Vector2Int ReadDirection()
+        {
+            GameSessionManager session = GameSessionManager.Instance;
+            if (session != null && session.IsInputLocked)
+                return Vector2Int.zero;
+
+            const float deadZone = 0.5f;
+            Vector2 input = moveAction.action.ReadValue<Vector2>();
+            int x = input.x > deadZone ? 1 : input.x < -deadZone ? -1 : 0;
+            int y = input.y > deadZone ? 1 : input.y < -deadZone ? -1 : 0;
+            return new Vector2Int(x, y);
         }
 
         void UpdateFacing(Vector2Int direction)
@@ -85,20 +94,6 @@ namespace ProjectT.Player
             bool directionCardinal = direction.x == 0 || direction.y == 0;
             return facingDiagonal && directionCardinal
                 && (direction.x == Facing.x || direction.y == Facing.y);
-        }
-
-        static Vector2Int ToDirection(Vector2 input)
-        {
-            const float deadZone = 0.5f;
-            int x = input.x > deadZone ? 1 : input.x < -deadZone ? -1 : 0;
-            int y = input.y > deadZone ? 1 : input.y < -deadZone ? -1 : 0;
-            return new Vector2Int(x, y);
-        }
-
-        static bool IsInputLocked()
-        {
-            GameSessionManager session = GameSessionManager.Instance;
-            return session != null && session.IsInputLocked;
         }
     }
 }

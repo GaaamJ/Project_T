@@ -16,8 +16,6 @@ namespace ProjectT.Session
 
         public void UnlockInput(string reason) => inputLockReasons.Remove(reason);
 
-        public bool IsInputLockedBy(string reason) => inputLockReasons.Contains(reason);
-
         void Awake()
         {
             if (Instance != null && Instance != this)

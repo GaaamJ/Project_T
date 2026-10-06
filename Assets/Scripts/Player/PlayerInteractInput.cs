@@ -15,6 +15,7 @@ namespace ProjectT.Player
         void OnEnable()
         {
             interactAction.action.performed += OnInteract;
+            // 액션 애셋을 여러 곳이 공유하므로 OnDisable에서 Disable()하면 다른 사용처의 입력도 끊긴다.
             interactAction.action.Enable();
         }
 
