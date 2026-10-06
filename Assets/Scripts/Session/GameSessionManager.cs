@@ -8,13 +8,13 @@ namespace ProjectT.Session
     {
         public static GameSessionManager Instance { get; private set; }
 
-        readonly HashSet<string> inputLockReasons = new HashSet<string>();
+        readonly HashSet<InputLockReason> inputLockReasons = new HashSet<InputLockReason>();
 
         public bool IsInputLocked => inputLockReasons.Count > 0;
 
-        public void LockInput(string reason) => inputLockReasons.Add(reason);
+        public void LockInput(InputLockReason reason) => inputLockReasons.Add(reason);
 
-        public void UnlockInput(string reason) => inputLockReasons.Remove(reason);
+        public void UnlockInput(InputLockReason reason) => inputLockReasons.Remove(reason);
 
         void Awake()
         {
