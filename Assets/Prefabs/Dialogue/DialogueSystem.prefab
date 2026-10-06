@@ -1002,9 +1002,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: YarnSpinner.Unity::Yarn.Unity.LineAdvancerInput.InputActions
   lineAdvancer: {fileID: 6297295382968203786}
-  hurryUpLineAction: {fileID: 6238183519477432662, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+  hurryUpLineAction: {fileID: 1781555164194001046, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   nextLineAction: {fileID: 0}
-  hurryUpOptionsAction: {fileID: 6238183519477432662, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+  hurryUpOptionsAction: {fileID: 1781555164194001046, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   cancelDialogueAction: {fileID: 0}
   enableActions: 1
 --- !u!1 &6698537452920158157
