@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 962252863038627914}
   - component: {fileID: 4718410963272639119}
   - component: {fileID: 4304434176655751610}
-  - component: {fileID: 6532422605411523738}
   m_Layer: 5
   m_Name: SpeakerImage
   m_TagString: Untagged
@@ -89,21 +88,6 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
---- !u!114 &6532422605411523738
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 443966975439005069}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a42bb2bf094c1fd4fa8772cd3bf224aa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DialogueSpeakerImageController
-  canvasGroup: {fileID: 4304434176655751610}
-  image: {fileID: 4718410963272639119}
-  dialogueRunner: {fileID: 8580549678268193905}
 --- !u!1 &910558305908546140
 GameObject:
   m_ObjectHideFlags: 0
@@ -373,7 +357,6 @@ GameObject:
   - component: {fileID: 8080717050662266275}
   - component: {fileID: 3326276646064941373}
   - component: {fileID: 7359851999316644694}
-  - component: {fileID: 8373789162378820524}
   m_Layer: 5
   m_Name: Dialogue Background
   m_TagString: Untagged
@@ -450,20 +433,6 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
---- !u!114 &8373789162378820524
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1925526302391503828}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 694370a2ed32d9945be938f51f87450c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DialogueBackgroundController
-  canvasGroup: {fileID: 7359851999316644694}
-  dialogueRunner: {fileID: 8580549678268193905}
 --- !u!1 &1959098016170282566
 GameObject:
   m_ObjectHideFlags: 0
@@ -476,8 +445,6 @@ GameObject:
   - component: {fileID: 2563454590120095956}
   - component: {fileID: 9117672380852714740}
   - component: {fileID: 4426110340149335456}
-  - component: {fileID: 183132669675856237}
-  - component: {fileID: 7123730082427070773}
   m_Layer: 5
   m_Name: OptionsPresenter
   m_TagString: Untagged
@@ -565,35 +532,6 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!114 &183132669675856237
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1959098016170282566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b9456d7361e32034d934a801ba4fe37a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NumberKeyOptionSelector
-  optionContainer: {fileID: 4245581654146603053}
---- !u!114 &7123730082427070773
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1959098016170282566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 842b8cc559593254ab112383fe8e458c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AskHelpTrigger
-  dialogueRunner: {fileID: 8580549678268193905}
-  dialogueQueue: {fileID: 0}
-  askHelpAction: {fileID: 6014311302800533823, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
-  askHelpYarnNode: AskForHelp
 --- !u!1 &2687782343961581468
 GameObject:
   m_ObjectHideFlags: 0

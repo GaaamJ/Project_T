@@ -7,8 +7,6 @@ namespace ProjectT.Session
     {
         public static GameSessionManager Instance { get; private set; }
 
-        public EventState EventState { get; private set; } = new EventState();
-
         void Awake()
         {
             if (Instance != null && Instance != this)
@@ -21,7 +19,6 @@ namespace ProjectT.Session
             DontDestroyOnLoad(gameObject);
 
             SaveManager.Load();
-            EventState.Load(SaveManager.Data);
         }
 
         void OnDestroy()
