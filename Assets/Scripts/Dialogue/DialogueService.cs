@@ -7,12 +7,17 @@ namespace ProjectT.Dialogue
     [RequireComponent(typeof(DialogueRunner))]
     public class DialogueService : MonoBehaviour
     {
+        [SerializeField] InputLock inputLock;
+
         DialogueRunner runner;
         bool isPlaying;
 
         void Awake()
         {
             runner = GetComponent<DialogueRunner>();
+
+            if (inputLock == null)
+                Debug.LogError("[DialogueService] InputLock 참조가 비어 있다.", this);
         }
 
         public async YarnTask<bool> Play(string nodeName)
@@ -29,10 +34,9 @@ namespace ProjectT.Dialogue
                 return false;
             }
 
+            // isPlaying보다 먼저 건다. 참조가 비어 여기서 예외가 나도 isPlaying이 true로 굳지 않게 하기 위함.
+            inputLock.Lock(InputLockReason.Dialogue);
             isPlaying = true;
-            GameSessionManager session = GameSessionManager.Instance;
-            if (session != null)
-                session.LockInput(InputLockReason.Dialogue);
 
             try
             {
@@ -47,8 +51,7 @@ namespace ProjectT.Dialogue
             finally
             {
                 isPlaying = false;
-                if (session != null)
-                    session.UnlockInput(InputLockReason.Dialogue);
+                inputLock.Unlock(InputLockReason.Dialogue);
             }
 
             return true;

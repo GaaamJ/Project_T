@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using ProjectT.Interaction;
-using ProjectT.Session;
 
 namespace ProjectT.Player
 {
@@ -84,13 +83,6 @@ namespace ProjectT.Player
 
         void Update()
         {
-            GameSessionManager session = GameSessionManager.Instance;
-            if (session != null && session.IsInputLocked)
-            {
-                SetHighlighted(null);
-                return;
-            }
-
             CurrentTarget = FindBest();
             SetHighlighted(CurrentTarget);
         }

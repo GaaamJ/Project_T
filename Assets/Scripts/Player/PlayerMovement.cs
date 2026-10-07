@@ -8,6 +8,7 @@ namespace ProjectT.Player
     public class PlayerMovement : MonoBehaviour
     {
         [SerializeField] InputActionReference moveAction;
+        [SerializeField] InputLock inputLock;
         [SerializeField] float moveSpeed = 3f;
         [Tooltip("대각선에서 키 하나를 뗐을 때 바라보는 방향을 상하좌우로 바꾸기 전 기다리는 시간(초)")]
         [SerializeField] float diagonalReleaseGrace = 0.1f;
@@ -51,8 +52,7 @@ namespace ProjectT.Player
 
         Vector2Int ReadDirection()
         {
-            GameSessionManager session = GameSessionManager.Instance;
-            if (session != null && session.IsInputLocked)
+            if (inputLock.IsLocked)
                 return Vector2Int.zero;
 
             const float deadZone = 0.5f;

@@ -9,6 +9,7 @@ namespace ProjectT.Player
     public class PlayerInteractInput : MonoBehaviour
     {
         [SerializeField] InputActionReference interactAction;
+        [SerializeField] InputLock inputLock;
 
         public event Action InteractPressed;
 
@@ -26,8 +27,7 @@ namespace ProjectT.Player
 
         void OnInteract(InputAction.CallbackContext context)
         {
-            GameSessionManager session = GameSessionManager.Instance;
-            if (session != null && session.IsInputLocked)
+            if (inputLock.IsLocked)
                 return;
 
             InteractPressed?.Invoke();
