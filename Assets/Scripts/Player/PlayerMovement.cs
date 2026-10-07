@@ -29,6 +29,13 @@ namespace ProjectT.Player
             body.freezeRotation = true;
             // 가만히 서 있는 동안에도 새로 나타난 조사 대상과 트리거 접촉이 생기도록 잠들지 않게 한다.
             body.sleepMode = RigidbodySleepMode2D.NeverSleep;
+
+            if (moveAction == null)
+                Debug.LogError("[PlayerMovement] 'moveAction' 참조가 비어 있다. 씬에서 연결해야 한다.", this);
+            if (inputLock == null)
+                Debug.LogError("[PlayerMovement] 'inputLock' 참조가 비어 있다. 씬에서 연결해야 한다.", this);
+            if (moveAction == null || inputLock == null)
+                enabled = false;
         }
 
         void OnEnable()

@@ -13,6 +13,16 @@ namespace ProjectT.Player
 
         public event Action InteractPressed;
 
+        void Awake()
+        {
+            if (interactAction == null)
+                Debug.LogError("[PlayerInteractInput] 'interactAction' 참조가 비어 있다. 씬에서 연결해야 한다.", this);
+            if (inputLock == null)
+                Debug.LogError("[PlayerInteractInput] 'inputLock' 참조가 비어 있다. 씬에서 연결해야 한다.", this);
+            if (interactAction == null || inputLock == null)
+                enabled = false;
+        }
+
         void OnEnable()
         {
             interactAction.action.performed += OnInteract;

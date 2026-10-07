@@ -18,11 +18,17 @@ namespace ProjectT.Dialogue
             runner = GetComponent<DialogueRunner>();
 
             if (inputLock == null)
-                Debug.LogError("[DialogueService] InputLock 참조가 비어 있다.", this);
+                Debug.LogError("[DialogueService] 'inputLock' 참조가 비어 있다. 씬에서 연결해야 한다.", this);
         }
 
         public async YarnTask<DialogueResult> Play(string nodeName)
         {
+            if (inputLock == null)
+            {
+                Debug.LogError($"[DialogueService] 'inputLock' 참조가 비어 있어 '{nodeName}' 재생을 거부했다.", this);
+                return DialogueResult.Rejected;
+            }
+
             if (isPlaying || runner.IsDialogueRunning)
             {
                 Debug.LogWarning($"[DialogueService] 대화 중이라 '{nodeName}' 재생을 거부했다.", this);
@@ -35,7 +41,6 @@ namespace ProjectT.Dialogue
                 return DialogueResult.Rejected;
             }
 
-            // isPlaying보다 먼저 건다. 참조가 비어 여기서 예외가 나도 isPlaying이 true로 굳지 않게 하기 위함.
             inputLock.Lock(InputLockReason.Dialogue);
             isPlaying = true;
             nodeCompleted = false;

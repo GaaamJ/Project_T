@@ -38,6 +38,13 @@ namespace ProjectT.Player
                 return;
             }
 
+            if (settings == null)
+            {
+                Debug.LogError("[DetectZone] 'settings' 참조가 비어 있다. 씬에서 연결해야 한다.", this);
+                enabled = false;
+                return;
+            }
+
             var circle = GetComponent<CircleCollider2D>();
             circle.isTrigger = true;
             Vector3 scale = transform.lossyScale;
