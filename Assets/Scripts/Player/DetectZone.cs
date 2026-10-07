@@ -1,54 +1,168 @@
+using System.Collections.Generic;
 using UnityEngine;
 using ProjectT.Interaction;
+using ProjectT.Session;
 
 namespace ProjectT.Player
 {
-    // 플레이어의 자식 오브젝트에 부착. Trigger Collider2D 로 Coordinate 진입/이탈을 감지한다.
-    // Rigidbody2D는 붙이지 않는다 — 부모 플레이어의 Rigidbody2D 를 물리적으로 상속받아 트리거가 동작함.
-    // 단일 참조 유지 정책: "나중에 들어온" Coordinate 를 우선한다.
-    //   - 두 Coordinate 가 겹친 상황에서 새로 진입한 쪽으로 즉시 교체.
-    //   - 현재 참조 중인 Coordinate 가 이탈하면 참조 해제(재감지는 다음 진입까지 대기).
-    //   - 다른(참조되지 않은) Coordinate 가 이탈하는 것은 무시 — "이전에 밀린" 대상까지 되살릴 필요가 없기 때문.
-    // PlayerInteract 는 Interact 입력이 들어온 시점에만 이 참조를 읽어 상호작용을 시도한다.
-    [RequireComponent(typeof(Collider2D))]
+    // 라리스의 자식(로컬 위치 0)에 붙인다. 부모의 Rigidbody2D로 트리거가 동작하므로 Rigidbody2D는 붙이지 않는다.
+    [RequireComponent(typeof(CircleCollider2D))]
     public class DetectZone : MonoBehaviour
     {
-        [Tooltip("감지할 대상의 레이어 (Interactable 레이어 지정). 이 레이어에 속하지 않는 오브젝트는 무시된다.")]
+        [SerializeField] InteractionSettings settings;
         [SerializeField] LayerMask interactableMask;
 
-        // Interact 입력 시점에 PlayerInteract 가 참조하는 "현재 감지된 Coordinate".
-        // 없을 때 null. 외부에서는 읽기 전용.
+        // 경계값(정확히 거리·각도 끝)을 포함시키기 위한 부동소수 오차 허용치
+        const float Epsilon = 1e-4f;
+
+        struct Candidate
+        {
+            public Collider2D collider;
+            public IInteractable interactable;
+        }
+
+        readonly List<Candidate> candidates = new List<Candidate>();
+        PlayerMovement movement;
+        IInteractable highlighted;
+
         public IInteractable CurrentTarget { get; private set; }
 
         void Reset()
         {
-            // 편집기에서 컴포넌트 부착 시 자동으로 Trigger 로 세팅 — 실수로 non-trigger 로 두어
-            // 물리 충돌이 발생하는 것을 방지.
-            var col = GetComponent<Collider2D>();
-            if (col != null) col.isTrigger = true;
+            GetComponent<CircleCollider2D>().isTrigger = true;
+        }
+
+        void Awake()
+        {
+            movement = GetComponentInParent<PlayerMovement>();
+
+            var circle = GetComponent<CircleCollider2D>();
+            circle.isTrigger = true;
+            circle.offset = Vector2.zero;
+            Vector3 scale = transform.lossyScale;
+            float maxScale = Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y));
+            circle.radius = settings.Distance / (maxScale > 0f ? maxScale : 1f);
+
+            if (transform.localPosition != Vector3.zero)
+                Debug.LogWarning("[DetectZone] 라리스 원점 기준으로 판정하므로 로컬 위치를 0으로 두어야 한다.", this);
+        }
+
+        void OnDisable()
+        {
+            SetHighlighted(null);
+            CurrentTarget = null;
         }
 
         void OnTriggerEnter2D(Collider2D other)
         {
-            if ((interactableMask.value & (1 << other.gameObject.layer)) == 0) return;
-            // 자식/루트 어디에 Coordinate 가 붙어 있어도 찾을 수 있게 GetComponentInParent 사용.
-            var coord = other.GetComponentInParent<IInteractable>();
-            if (coord == null) return;
+            if ((interactableMask.value & (1 << other.gameObject.layer)) == 0)
+                return;
 
-            // "나중에 진입한 것으로 교체" 정책 — 이전 참조가 있어도 무조건 새 대상으로 교체.
-            CurrentTarget = coord;
+            IInteractable interactable = other.GetComponentInParent<IInteractable>();
+            if (interactable == null)
+                return;
+
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                if (candidates[i].collider == other)
+                    return;
+            }
+
+            candidates.Add(new Candidate { collider = other, interactable = interactable });
         }
 
         void OnTriggerExit2D(Collider2D other)
         {
-            if ((interactableMask.value & (1 << other.gameObject.layer)) == 0) return;
-            var coord = other.GetComponentInParent<IInteractable>();
-            if (coord == null) return;
+            for (int i = candidates.Count - 1; i >= 0; i--)
+            {
+                if (candidates[i].collider == other)
+                    candidates.RemoveAt(i);
+            }
+        }
 
-            // 현재 참조 중인 대상이 이탈한 경우에만 참조 해제.
-            // 다른(밀려나 있던) Coordinate 이탈은 무시 — 참조 상태에 영향을 주지 않음.
-            if (coord == CurrentTarget)
-                CurrentTarget = null;
+        void Update()
+        {
+            GameSessionManager session = GameSessionManager.Instance;
+            if (session != null && session.IsInputLocked)
+            {
+                SetHighlighted(null);
+                return;
+            }
+
+            CurrentTarget = FindBest();
+            SetHighlighted(CurrentTarget);
+        }
+
+        IInteractable FindBest()
+        {
+            Vector2 origin = movement.transform.position;
+            Vector2 facing = ((Vector2)movement.Facing).normalized;
+
+            IInteractable best = null;
+            float bestDistance = 0f;
+            float bestAngle = 0f;
+            int bestId = 0;
+
+            for (int i = candidates.Count - 1; i >= 0; i--)
+            {
+                Candidate candidate = candidates[i];
+                if (candidate.collider == null || !IsAlive(candidate.interactable))
+                {
+                    candidates.RemoveAt(i);
+                    continue;
+                }
+
+                if (!candidate.collider.isActiveAndEnabled || !candidate.interactable.CanInteract)
+                    continue;
+
+                Vector2 toPoint = candidate.collider.ClosestPoint(origin) - origin;
+                float distance = toPoint.magnitude;
+                if (distance > settings.Distance + Epsilon)
+                    continue;
+
+                float angle = distance <= Epsilon ? 0f : Vector2.Angle(facing, toPoint);
+                if (angle > settings.HalfAngle + Epsilon)
+                    continue;
+
+                int id = ((Object)candidate.interactable).GetInstanceID();
+                if (best != null && !IsBetter(distance, angle, id, bestDistance, bestAngle, bestId))
+                    continue;
+
+                best = candidate.interactable;
+                bestDistance = distance;
+                bestAngle = angle;
+                bestId = id;
+            }
+
+            return best;
+        }
+
+        static bool IsBetter(float distance, float angle, int id, float bestDistance, float bestAngle, int bestId)
+        {
+            if (Mathf.Abs(distance - bestDistance) > Epsilon)
+                return distance < bestDistance;
+            if (Mathf.Abs(angle - bestAngle) > Epsilon)
+                return angle < bestAngle;
+            return id < bestId;
+        }
+
+        void SetHighlighted(IInteractable target)
+        {
+            if (ReferenceEquals(target, highlighted))
+                return;
+
+            if (IsAlive(highlighted))
+                highlighted.HideHighlight();
+
+            highlighted = target;
+
+            if (target != null)
+                target.ShowHighlight(settings.HighlightColor);
+        }
+
+        public static bool IsAlive(IInteractable interactable)
+        {
+            return interactable is Object unityObject ? unityObject != null : interactable != null;
         }
     }
 }
