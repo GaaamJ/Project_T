@@ -38,11 +38,6 @@ namespace ProjectT.Player
         {
             movement = GetComponentInParent<PlayerMovement>();
 
-            // 잠든 Rigidbody2D는 가만히 있는 동안 새로 나타난 콜라이더와 트리거 접촉을 만들지 않는다.
-            Rigidbody2D body = GetComponentInParent<Rigidbody2D>();
-            if (body != null)
-                body.sleepMode = RigidbodySleepMode2D.NeverSleep;
-
             var circle = GetComponent<CircleCollider2D>();
             circle.isTrigger = true;
             circle.offset = Vector2.zero;
