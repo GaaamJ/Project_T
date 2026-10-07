@@ -742,7 +742,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectT.Dialogue.CutsceneCommand
   cutsceneRoot: {fileID: 8689640651562284047}
   cutsceneImage: {fileID: 1889430503042063580}
-  closeAction: {fileID: 1781555164194001046, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
 --- !u!1 &3520168981185896109
 GameObject:
   m_ObjectHideFlags: 0
@@ -1259,10 +1258,10 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 8216507994472054001}
   - {fileID: 7446520988543036350}
   - {fileID: 2838931213327837518}
   - {fileID: 936615460709051359}
-  - {fileID: 8216507994472054001}
   m_Father: {fileID: 4896530558945115022}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}

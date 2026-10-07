@@ -13,5 +13,14 @@ title: Test_Cutscene
 ---
 라리스: 저건... 뭐지?
 <<Cutscene sample>>
+라리스: 누군가 쓰러져 있어.
+라리스: 움직이지 않아.
+<<CutsceneEnd>>
 라리스: 방금 그건 뭐였을까.
+===
+
+title: Test_Cutscene_AutoEnd
+---
+<<Cutscene sample>>
+라리스: 눈을 감으면 아직도 보여.
 ===
