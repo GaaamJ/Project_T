@@ -1,0 +1,26 @@
+title: Test_Basic
+---
+라리스: 여기는 처음 보는 곳이야.
+라리스: 조금만 더 둘러볼까.
+===
+
+title: Test_Recheck
+---
+라리스: 아까 본 거야.
+===
+
+title: Test_Cutscene
+---
+라리스: 저건... 뭐지?
+<<Cutscene sample>>
+라리스: 누군가 쓰러져 있어.
+라리스: 움직이지 않아.
+<<CutsceneEnd>>
+라리스: 방금 그건 뭐였을까.
+===
+
+title: Test_Cutscene_AutoEnd
+---
+<<Cutscene sample>>
+라리스: 눈을 감으면 아직도 보여.
+===
