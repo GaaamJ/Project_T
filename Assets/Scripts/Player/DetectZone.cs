@@ -14,6 +14,8 @@ namespace ProjectT.Player
 
         // 경계값(정확히 거리·각도 끝)을 포함시키기 위한 부동소수 오차 허용치
         const float Epsilon = 1e-4f;
+        // 트리거 원이 경계에 딱 닿은 대상을 후보에서 놓치지 않도록 조금 크게 잡고, 실제 판정은 FindBest가 한다.
+        const float TriggerMargin = 0.1f;
 
         struct Candidate
         {
@@ -36,12 +38,17 @@ namespace ProjectT.Player
         {
             movement = GetComponentInParent<PlayerMovement>();
 
+            // 잠든 Rigidbody2D는 가만히 있는 동안 새로 나타난 콜라이더와 트리거 접촉을 만들지 않는다.
+            Rigidbody2D body = GetComponentInParent<Rigidbody2D>();
+            if (body != null)
+                body.sleepMode = RigidbodySleepMode2D.NeverSleep;
+
             var circle = GetComponent<CircleCollider2D>();
             circle.isTrigger = true;
             circle.offset = Vector2.zero;
             Vector3 scale = transform.lossyScale;
             float maxScale = Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y));
-            circle.radius = settings.Distance / (maxScale > 0f ? maxScale : 1f);
+            circle.radius = (settings.Distance + TriggerMargin) / (maxScale > 0f ? maxScale : 1f);
 
             if (transform.localPosition != Vector3.zero)
                 Debug.LogWarning("[DetectZone] 라리스 원점 기준으로 판정하므로 로컬 위치를 0으로 두어야 한다.", this);
