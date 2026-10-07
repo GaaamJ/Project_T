@@ -9,13 +9,24 @@ namespace ProjectT.Player
     public class PlayerInteractInput : MonoBehaviour
     {
         [SerializeField] InputActionReference interactAction;
+        [SerializeField] InputLock inputLock;
 
         public event Action InteractPressed;
+
+        void Awake()
+        {
+            if (interactAction == null)
+                Debug.LogError("[PlayerInteractInput] 'interactAction' 참조가 비어 있다. 씬에서 연결해야 한다.", this);
+            if (inputLock == null)
+                Debug.LogError("[PlayerInteractInput] 'inputLock' 참조가 비어 있다. 씬에서 연결해야 한다.", this);
+            if (interactAction == null || inputLock == null)
+                enabled = false;
+        }
 
         void OnEnable()
         {
             interactAction.action.performed += OnInteract;
-            // 액션 애셋을 여러 곳이 공유하므로 OnDisable에서 Disable()하면 다른 사용처의 입력도 끊긴다.
+            // Disable()하지 않는 이유는 PlayerMovement.OnEnable 참고.
             interactAction.action.Enable();
         }
 
@@ -26,8 +37,7 @@ namespace ProjectT.Player
 
         void OnInteract(InputAction.CallbackContext context)
         {
-            GameSessionManager session = GameSessionManager.Instance;
-            if (session != null && session.IsInputLocked)
+            if (inputLock.IsLocked)
                 return;
 
             InteractPressed?.Invoke();

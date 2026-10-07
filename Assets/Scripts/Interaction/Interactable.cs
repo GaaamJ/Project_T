@@ -1,7 +1,7 @@
 using UnityEngine;
 using Yarn.Unity;
 using ProjectT.Data;
-using ProjectT.Session;
+using ProjectT.Dialogue;
 
 namespace ProjectT.Interaction
 {
@@ -12,8 +12,6 @@ namespace ProjectT.Interaction
         SpriteRenderer[] renderers;
         Color[] originalColors;
         bool isHighlighted;
-
-        public ObjectData Data => data;
 
         public bool CanInteract => data != null && isActiveAndEnabled;
 
@@ -51,16 +49,13 @@ namespace ProjectT.Interaction
 
         public void Interact(InteractContext context)
         {
-            if (data == null)
-                return;
-
             switch (data.Kind)
             {
                 case ObjectKind.Item:
                     Debug.Log($"[Interactable] 아이템 조사: {data.Id}", this);
                     break;
                 case ObjectKind.Basic:
-                    // await 없이 시작해야 Play가 같은 콜백 안에서 입력 잠금을 건다.
+                    // await 없이 시작해야 Play가 같은 콜백 안에서 입력 잠금을 건다. 예외는 Forget()이 로그로 남긴다.
                     PlayBasic(context).Forget();
                     break;
                 default:
@@ -78,11 +73,8 @@ namespace ProjectT.Interaction
             }
 
             string id = data.Id;
-            GameSessionManager session = GameSessionManager.Instance;
-            bool investigated = session != null && session.HasInvestigated(id);
-
             string node = data.DialogueNode;
-            if (investigated)
+            if (context.Investigated.Contains(id))
             {
                 if (string.IsNullOrWhiteSpace(data.RecheckDialogueNode))
                     Debug.LogWarning($"[Interactable] '{id}': 재조사 대사 노드가 비어 있어 첫 대사를 반복한다.", this);
@@ -90,12 +82,11 @@ namespace ProjectT.Interaction
                     node = data.RecheckDialogueNode;
             }
 
-            bool played = await context.Dialogue.Play(node);
+            DialogueResult result = await context.Dialogue.Play(node);
 
             // 대사 중 이 오브젝트가 파괴될 수 있으므로 await 뒤에는 미리 받아 둔 값만 쓴다.
-            session = GameSessionManager.Instance;
-            if (played && session != null)
-                session.MarkInvestigated(id);
+            if (result == DialogueResult.Completed)
+                context.Investigated.Add(id);
         }
     }
 }

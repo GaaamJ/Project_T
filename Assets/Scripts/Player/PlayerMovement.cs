@@ -8,9 +8,12 @@ namespace ProjectT.Player
     public class PlayerMovement : MonoBehaviour
     {
         [SerializeField] InputActionReference moveAction;
+        [SerializeField] InputLock inputLock;
         [SerializeField] float moveSpeed = 3f;
         [Tooltip("대각선에서 키 하나를 뗐을 때 바라보는 방향을 상하좌우로 바꾸기 전 기다리는 시간(초)")]
         [SerializeField] float diagonalReleaseGrace = 0.1f;
+
+        const float DeadZone = 0.5f;
 
         Rigidbody2D body;
         Vector2Int pendingFacing;
@@ -26,6 +29,13 @@ namespace ProjectT.Player
             body.freezeRotation = true;
             // 가만히 서 있는 동안에도 새로 나타난 조사 대상과 트리거 접촉이 생기도록 잠들지 않게 한다.
             body.sleepMode = RigidbodySleepMode2D.NeverSleep;
+
+            if (moveAction == null)
+                Debug.LogError("[PlayerMovement] 'moveAction' 참조가 비어 있다. 씬에서 연결해야 한다.", this);
+            if (inputLock == null)
+                Debug.LogError("[PlayerMovement] 'inputLock' 참조가 비어 있다. 씬에서 연결해야 한다.", this);
+            if (moveAction == null || inputLock == null)
+                enabled = false;
         }
 
         void OnEnable()
@@ -51,14 +61,12 @@ namespace ProjectT.Player
 
         Vector2Int ReadDirection()
         {
-            GameSessionManager session = GameSessionManager.Instance;
-            if (session != null && session.IsInputLocked)
+            if (inputLock.IsLocked)
                 return Vector2Int.zero;
 
-            const float deadZone = 0.5f;
             Vector2 input = moveAction.action.ReadValue<Vector2>();
-            int x = input.x > deadZone ? 1 : input.x < -deadZone ? -1 : 0;
-            int y = input.y > deadZone ? 1 : input.y < -deadZone ? -1 : 0;
+            int x = input.x > DeadZone ? 1 : input.x < -DeadZone ? -1 : 0;
+            int y = input.y > DeadZone ? 1 : input.y < -DeadZone ? -1 : 0;
             return new Vector2Int(x, y);
         }
 
