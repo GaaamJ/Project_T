@@ -74,11 +74,8 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
-# Obsidian auto-generated state
-ThreadVault/.obsidian/graph.json
-ThreadVault/.obsidian/workspace.json
-ThreadVault/.obsidian/workspace-mobile.json
-ThreadVault/.obsidian/core-plugins.json
+# Obsidian 설정(개인 환경이라 저장소에 올리지 않음)
+Docs/.obsidian/
 
 # MCP 테스트용 스크린샷
 /[Aa]ssets/[Ss]creenshots/
