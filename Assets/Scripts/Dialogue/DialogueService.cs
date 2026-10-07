@@ -10,8 +10,6 @@ namespace ProjectT.Dialogue
         DialogueRunner runner;
         bool isPlaying;
 
-        public bool IsPlaying => isPlaying;
-
         void Awake()
         {
             runner = GetComponent<DialogueRunner>();
