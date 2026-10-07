@@ -13,6 +13,8 @@ namespace ProjectT.Player
         [Tooltip("대각선에서 키 하나를 뗐을 때 바라보는 방향을 상하좌우로 바꾸기 전 기다리는 시간(초)")]
         [SerializeField] float diagonalReleaseGrace = 0.1f;
 
+        const float DeadZone = 0.5f;
+
         Rigidbody2D body;
         Vector2Int pendingFacing;
         float pendingSince;
@@ -55,10 +57,9 @@ namespace ProjectT.Player
             if (inputLock.IsLocked)
                 return Vector2Int.zero;
 
-            const float deadZone = 0.5f;
             Vector2 input = moveAction.action.ReadValue<Vector2>();
-            int x = input.x > deadZone ? 1 : input.x < -deadZone ? -1 : 0;
-            int y = input.y > deadZone ? 1 : input.y < -deadZone ? -1 : 0;
+            int x = input.x > DeadZone ? 1 : input.x < -DeadZone ? -1 : 0;
+            int y = input.y > DeadZone ? 1 : input.y < -DeadZone ? -1 : 0;
             return new Vector2Int(x, y);
         }
 

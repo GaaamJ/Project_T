@@ -22,7 +22,7 @@ namespace ProjectT.Session
             counts.TryGetValue(reason, out int count);
             if (count == 0)
             {
-                Debug.LogError($"[InputLock] 걸지 않은 잠금 {reason}을 풀려고 했다.", this);
+                Debug.LogError($"[InputLock] 걸지 않은 잠금 사유({reason})를 풀려고 했다.", this);
                 return;
             }
 

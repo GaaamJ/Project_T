@@ -4,7 +4,7 @@ using ProjectT.Interaction;
 
 namespace ProjectT.Player
 {
-    // 라리스의 자식(로컬 위치 0)에 붙인다. 부모의 Rigidbody2D로 트리거가 동작하므로 Rigidbody2D는 붙이지 않는다.
+    // 라리스의 자식에 붙인다. 부모의 Rigidbody2D로 트리거가 동작하므로 Rigidbody2D는 붙이지 않는다.
     [RequireComponent(typeof(CircleCollider2D))]
     public class DetectZone : MonoBehaviour
     {
@@ -28,24 +28,21 @@ namespace ProjectT.Player
 
         public IInteractable CurrentTarget { get; private set; }
 
-        void Reset()
-        {
-            GetComponent<CircleCollider2D>().isTrigger = true;
-        }
-
         void Awake()
         {
             movement = GetComponentInParent<PlayerMovement>();
+            if (movement == null)
+            {
+                Debug.LogError("[DetectZone] 부모에서 PlayerMovement를 찾지 못했다.", this);
+                enabled = false;
+                return;
+            }
 
             var circle = GetComponent<CircleCollider2D>();
             circle.isTrigger = true;
-            circle.offset = Vector2.zero;
             Vector3 scale = transform.lossyScale;
             float maxScale = Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y));
             circle.radius = (settings.Distance + TriggerMargin) / (maxScale > 0f ? maxScale : 1f);
-
-            if (transform.localPosition != Vector3.zero)
-                Debug.LogWarning("[DetectZone] 라리스 원점 기준으로 판정하므로 로컬 위치를 0으로 두어야 한다.", this);
         }
 
         void OnDisable()
@@ -89,7 +86,7 @@ namespace ProjectT.Player
 
         IInteractable FindBest()
         {
-            Vector2 origin = movement.transform.position;
+            Vector2 origin = transform.position;
             Vector2 facing = ((Vector2)movement.Facing).normalized;
 
             IInteractable best = null;
@@ -100,7 +97,7 @@ namespace ProjectT.Player
             for (int i = candidates.Count - 1; i >= 0; i--)
             {
                 Candidate candidate = candidates[i];
-                if (candidate.collider == null || !IsAlive(candidate.interactable))
+                if (candidate.collider == null || !candidate.interactable.IsAlive())
                 {
                     candidates.RemoveAt(i);
                     continue;
@@ -145,18 +142,13 @@ namespace ProjectT.Player
             if (ReferenceEquals(target, highlighted))
                 return;
 
-            if (IsAlive(highlighted))
+            if (highlighted.IsAlive())
                 highlighted.HideHighlight();
 
             highlighted = target;
 
             if (target != null)
                 target.ShowHighlight(settings.HighlightColor);
-        }
-
-        public static bool IsAlive(IInteractable interactable)
-        {
-            return interactable is Object unityObject ? unityObject != null : interactable != null;
         }
     }
 }

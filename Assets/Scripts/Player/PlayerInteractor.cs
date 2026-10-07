@@ -1,6 +1,7 @@
 using UnityEngine;
 using ProjectT.Dialogue;
 using ProjectT.Interaction;
+using ProjectT.Session;
 
 namespace ProjectT.Player
 {
@@ -23,10 +24,10 @@ namespace ProjectT.Player
         void OnInteractPressed()
         {
             IInteractable target = detectZone.CurrentTarget;
-            if (!DetectZone.IsAlive(target) || !target.CanInteract)
+            if (!target.IsAlive() || !target.CanInteract)
                 return;
 
-            target.Interact(new InteractContext(dialogueService));
+            target.Interact(new InteractContext(dialogueService, GameSession.Investigated));
         }
     }
 }

@@ -2,10 +2,11 @@ using UnityEngine;
 
 namespace ProjectT.Data
 {
+    // 에셋에 숫자로 저장되므로 기존 값은 바꾸지 않고 새 종류는 새 값으로 추가한다.
     public enum ObjectKind
     {
-        Basic,
-        Item
+        Basic = 0,
+        Item = 1
     }
 
     [CreateAssetMenu(fileName = "ObjectData", menuName = "ProjectT/Object Data")]
