@@ -9,12 +9,17 @@ namespace ProjectT.Session
         public static GameSessionManager Instance { get; private set; }
 
         readonly HashSet<InputLockReason> inputLockReasons = new HashSet<InputLockReason>();
+        readonly HashSet<string> investigatedObjectIds = new HashSet<string>();
 
         public bool IsInputLocked => inputLockReasons.Count > 0;
 
         public void LockInput(InputLockReason reason) => inputLockReasons.Add(reason);
 
         public void UnlockInput(InputLockReason reason) => inputLockReasons.Remove(reason);
+
+        public bool HasInvestigated(string objectId) => investigatedObjectIds.Contains(objectId);
+
+        public void MarkInvestigated(string objectId) => investigatedObjectIds.Add(objectId);
 
         void Awake()
         {

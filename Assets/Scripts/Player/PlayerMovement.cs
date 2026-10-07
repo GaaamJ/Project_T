@@ -24,6 +24,8 @@ namespace ProjectT.Player
             body = GetComponent<Rigidbody2D>();
             body.gravityScale = 0f;
             body.freezeRotation = true;
+            // 가만히 서 있는 동안에도 새로 나타난 조사 대상과 트리거 접촉이 생기도록 잠들지 않게 한다.
+            body.sleepMode = RigidbodySleepMode2D.NeverSleep;
         }
 
         void OnEnable()
