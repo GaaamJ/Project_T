@@ -1,10 +1,22 @@
 fileFormatVersion: 2
-guid: 8a3f6ae53376b62409ae6776ce9656a1
+guid: 09a4d4340e8e9d64eaa06a4ba7d8be4a
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1667476667342117222
-    second: sample_0
+      213: 7436498615146029604
+    second: GrayScaleTileSet_0
+  - first:
+      213: -1827389520399960917
+    second: GrayScaleTileSet_1
+  - first:
+      213: 8222353560873923631
+    second: GrayScaleTileSet_2
+  - first:
+      213: -1493762291185966784
+    second: GrayScaleTileSet_3
+  - first:
+      213: 1316097502998521213
+    second: GrayScaleTileSet_4
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -37,7 +49,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -46,12 +58,12 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 16
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -75,7 +87,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -113,23 +125,67 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: sample_0
+      name: GrayScaleTileSet_Dark
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 1671
-        height: 941
+        width: 16
+        height: 16
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 669dd2cb131142710800000000000000
-      internalID: 1667476667342117222
+      spriteID: 422a6781710c33760800000000000000
+      internalID: 7436498615146029604
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GrayScaleTileSet_Light
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 16
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1681341163741e94d9fb5a3e9817c3da
+      internalID: 72913683
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: GrayScale_Interactable
+      rect:
+        serializedVersion: 2
+        x: 22
+        y: 1
+        width: 20
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a0ee4c60aad0e8144a500075b4a5454c
+      internalID: 1239788535
       vertices: []
       indices: 
       edges: []
@@ -138,7 +194,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: b1e44982fdb081e44b3daffa8027a67e
     internalID: 0
     vertices: []
     indices: 
@@ -146,9 +202,17 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      sample_0: 1667476667342117222
+      GrayScaleTileSet_1: -1827389520399960917
+      GrayScaleTileSet_2: 8222353560873923631
+      GrayScaleTileSet_3: -1493762291185966784
+      GrayScaleTileSet_4: 1316097502998521213
+      GrayScaleTileSet_Dark: 7436498615146029604
+      GrayScaleTileSet_Light: 72913683
+      GrayScale_Interactable: 1239788535
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

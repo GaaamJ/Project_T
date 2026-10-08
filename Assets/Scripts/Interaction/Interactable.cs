@@ -7,44 +7,51 @@ namespace ProjectT.Interaction
 {
     public class Interactable : MonoBehaviour, IInteractable
     {
+        static readonly int OutlineEnabledId = Shader.PropertyToID("_OutlineEnabled");
+        static readonly int OutlineColorId = Shader.PropertyToID("_OutlineColor");
+
         [SerializeField] ObjectData data;
 
         SpriteRenderer[] renderers;
-        Color[] originalColors;
-        bool isHighlighted;
+        MaterialPropertyBlock block;
 
         public bool CanInteract => data != null && isActiveAndEnabled;
 
         void Awake()
         {
             renderers = GetComponentsInChildren<SpriteRenderer>(true);
-            originalColors = new Color[renderers.Length];
+            block = new MaterialPropertyBlock();
 
             if (data == null)
                 Debug.LogWarning($"[Interactable] '{name}': ObjectData가 비어 있어 조사 대상에서 제외한다.", this);
+
+            foreach (SpriteRenderer spriteRenderer in renderers)
+            {
+                Material material = spriteRenderer.sharedMaterial;
+                if (material == null || !material.HasProperty(OutlineEnabledId))
+                    Debug.LogWarning($"[Interactable] '{name}': '{spriteRenderer.name}'의 머티리얼에 외곽선 프로퍼티가 없어 하이라이트가 보이지 않는다. SpriteOutline 머티리얼을 지정해야 한다.", this);
+            }
         }
 
         public void ShowHighlight(Color color)
         {
-            if (!isHighlighted)
+            foreach (SpriteRenderer spriteRenderer in renderers)
             {
-                for (int i = 0; i < renderers.Length; i++)
-                    originalColors[i] = renderers[i].color;
-                isHighlighted = true;
+                spriteRenderer.GetPropertyBlock(block);
+                block.SetFloat(OutlineEnabledId, 1f);
+                block.SetColor(OutlineColorId, color);
+                spriteRenderer.SetPropertyBlock(block);
             }
-
-            for (int i = 0; i < renderers.Length; i++)
-                renderers[i].color = color;
         }
 
         public void HideHighlight()
         {
-            if (!isHighlighted)
-                return;
-
-            for (int i = 0; i < renderers.Length; i++)
-                renderers[i].color = originalColors[i];
-            isHighlighted = false;
+            foreach (SpriteRenderer spriteRenderer in renderers)
+            {
+                spriteRenderer.GetPropertyBlock(block);
+                block.SetFloat(OutlineEnabledId, 0f);
+                spriteRenderer.SetPropertyBlock(block);
+            }
         }
 
         public void Interact(InteractContext context)

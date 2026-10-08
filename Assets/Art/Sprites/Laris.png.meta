@@ -1,10 +1,22 @@
 fileFormatVersion: 2
-guid: 9c5b8010088eb8743986ea157af261a6
+guid: 3b4aa45cff2314b4281aeff14cc2314a
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7672128857184458879
-    second: containerBox_0
+      213: 4482454165691445267
+    second: Laris_0
+  - first:
+      213: -1913655522418471621
+    second: Laris_1
+  - first:
+      213: 3339889221897421838
+    second: Laris_2
+  - first:
+      213: -7225736133559629788
+    second: Laris_3
+  - first:
+      213: 9133839876004317546
+    second: Laris_4
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -48,10 +60,10 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 32
+  spritePixelsToUnits: 16
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -113,23 +125,111 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: (Sample)containerBox
+      name: Laris_LD
       rect:
         serializedVersion: 2
-        x: 0
+        x: 18
         y: 0
-        width: 32
-        height: 32
+        width: 12
+        height: 16
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
-      border: {x: 4, y: 4, z: 4, w: 4}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3d48cbf0745175e0800000000000000
+      internalID: -1913655522418471621
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Laris_Left
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 0
+        width: 13
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e040a544d8ba95e20800000000000000
+      internalID: 3339889221897421838
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Laris_LT
+      rect:
+        serializedVersion: 2
+        x: 50
+        y: 0
+        width: 12
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4284976254709bb90800000000000000
+      internalID: -7225736133559629788
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Laris_Up
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 0
+        width: 14
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a69098c59fae1ce70800000000000000
+      internalID: 9133839876004317546
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Laris_Down
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 0
+        width: 14
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7934cdfa9f180b3459ad548247b90ed7
-      internalID: 251838407
+      spriteID: 7695b334d87c87c4c86c67e4cafd1b40
+      internalID: -2131073498
       vertices: []
       indices: 
       edges: []
@@ -138,7 +238,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 8a1a936a283fe414ea81aa33d577fd63
+    spriteID: 3444846eed08b3e449990318da7bc188
     internalID: 0
     vertices: []
     indices: 
@@ -150,7 +250,11 @@ TextureImporter:
       - key: SpriteEditor.SliceSettings
         value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      (Sample)containerBox: 251838407
+      Laris_Down: -2131073498
+      Laris_LD: -1913655522418471621
+      Laris_LT: -7225736133559629788
+      Laris_Left: 3339889221897421838
+      Laris_Up: 9133839876004317546
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
