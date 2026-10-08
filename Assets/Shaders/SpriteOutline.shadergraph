@@ -20,6 +20,9 @@
         },
         {
             "m_Id": "a8aaa3f056e6de28b2d7655c4cf75ed3"
+        },
+        {
+            "m_Id": "c4e1a7b2d3f5068192a3b4c5d6e7f801"
         }
     ],
     "m_Keywords": [],
@@ -83,6 +86,9 @@
         },
         {
             "m_Id": "9d1bf7c390a24363b943960c11491a8a"
+        },
+        {
+            "m_Id": "e6a3c9d4f5b7280314c5d6e7f8091a23"
         }
     ],
     "m_GroupDatas": [],
@@ -254,6 +260,20 @@
                     "m_Id": "9d1bf7c390a24363b943960c11491a8a"
                 },
                 "m_SlotId": 0
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "e6a3c9d4f5b7280314c5d6e7f8091a23"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "c9e402570301dfa1117e712947166088"
+                },
+                "m_SlotId": 8
             }
         }
     ],
@@ -835,6 +855,90 @@
 }
 
 {
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
+    "m_ObjectId": "c4e1a7b2d3f5068192a3b4c5d6e7f801",
+    "m_Guid": {
+        "m_GuidSerialized": "5b0c6e2a-7d41-4f8e-9a3b-1c2d3e4f5a6b"
+    },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
+    "m_Name": "Outline Eight Way",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "Outline Eight Way",
+    "m_DefaultReferenceName": "_Outline_Eight_Way",
+    "m_OverrideReferenceName": "_OutlineEightWay",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
+    "m_DismissedVersion": 0,
+    "m_Precision": 0,
+    "overrideHLSLDeclaration": false,
+    "hlslDeclarationOverride": 0,
+    "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
+    "m_Value": 0,
+    "m_FloatType": 0,
+    "m_RangeValues": {
+        "x": 0,
+        "y": 1
+    }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "d5f2b8c3e4a6179203b4c5d6e7f80912",
+    "m_Id": 0,
+    "m_DisplayName": "Outline Eight Way",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_Value": 0,
+    "m_DefaultValue": 0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
+    "m_ObjectId": "e6a3c9d4f5b7280314c5d6e7f8091a23",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Property",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": -900,
+            "y": 330,
+            "width": 160,
+            "height": 36
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "d5f2b8c3e4a6179203b4c5d6e7f80912"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": false,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_Property": {
+        "m_Id": "c4e1a7b2d3f5068192a3b4c5d6e7f801"
+    }
+}
+
+{
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector2MaterialSlot",
     "m_ObjectId": "232806dc24969ea0b7a87091fd55cbdc",
@@ -1072,6 +1176,21 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "f7b4dae5a6c8391425d6e7f8091a2b34",
+    "m_Id": 8,
+    "m_DisplayName": "EightWay",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "EightWay",
+    "m_StageCapability": 3,
+    "m_Value": 0,
+    "m_DefaultValue": 0,
+    "m_Labels": []
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "0fbfacdab57f01831ba10ed5e8363d22",
     "m_Id": 6,
@@ -1146,6 +1265,9 @@
             "m_Id": "ee8c7f3495c152ec8d1873ec6f4ca58c"
         },
         {
+            "m_Id": "f7b4dae5a6c8391425d6e7f8091a2b34"
+        },
+        {
             "m_Id": "0fbfacdab57f01831ba10ed5e8363d22"
         },
         {
@@ -1167,7 +1289,7 @@
     "m_FunctionName": "SpriteOutline",
     "m_FunctionSource": "",
     "m_FunctionSourceUsePragmas": true,
-    "m_FunctionBody": "// 메시 밖은 그려지지 않으므로 외곽선이 보이려면 스프라이트가 Mesh Type Full Rect이고 두께 이상의 투명 여백이 있어야 한다.\nfloat4 texColor = SAMPLE_TEXTURE2D(Tex.tex, Tex.samplerstate, UV);\n// _TexelSize 프로퍼티를 쓰면 2D SRP Batcher가 꺼지므로 텍스처 크기를 직접 구한다.\nfloat width, height;\nTex.tex.GetDimensions(width, height);\nfloat2 d = Thickness / float2(width, height);\nfloat neighbor = 0;\nneighbor = max(neighbor, SAMPLE_TEXTURE2D(Tex.tex, Tex.samplerstate, UV + float2( d.x, 0)).a);\nneighbor = max(neighbor, SAMPLE_TEXTURE2D(Tex.tex, Tex.samplerstate, UV + float2(-d.x, 0)).a);\nneighbor = max(neighbor, SAMPLE_TEXTURE2D(Tex.tex, Tex.samplerstate, UV + float2(0,  d.y)).a);\nneighbor = max(neighbor, SAMPLE_TEXTURE2D(Tex.tex, Tex.samplerstate, UV + float2(0, -d.y)).a);\nneighbor = max(neighbor, SAMPLE_TEXTURE2D(Tex.tex, Tex.samplerstate, UV + float2( d.x,  d.y)).a);\nneighbor = max(neighbor, SAMPLE_TEXTURE2D(Tex.tex, Tex.samplerstate, UV + float2(-d.x,  d.y)).a);\nneighbor = max(neighbor, SAMPLE_TEXTURE2D(Tex.tex, Tex.samplerstate, UV + float2( d.x, -d.y)).a);\nneighbor = max(neighbor, SAMPLE_TEXTURE2D(Tex.tex, Tex.samplerstate, UV + float2(-d.x, -d.y)).a);\nfloat outline = step(0.5, Enabled) * neighbor * (1 - texColor.a);\nfloat4 result = lerp(texColor * Tint, OutlineColor, outline);\nRGB = result.rgb;\nAlpha = result.a;"
+    "m_FunctionBody": "// 메시 밖은 그려지지 않으므로 외곽선이 보이려면 스프라이트가 Mesh Type Full Rect이고 두께 이상의 투명 여백이 있어야 한다.\nfloat4 texColor = SAMPLE_TEXTURE2D(Tex.tex, Tex.samplerstate, UV);\nfloat neighbor = 0;\nif (Enabled > 0.5)\n{\n    // _TexelSize 프로퍼티를 쓰면 2D SRP Batcher가 꺼지므로 텍스처 크기를 직접 구한다.\n    float width, height;\n    Tex.tex.GetDimensions(width, height);\n    float2 texel = 1 / float2(width, height);\n    int n = (int)round(Thickness);\n    // 4방향(맨해튼 거리)이어야 대각선 계단에 L자로 겹친 픽셀이 생기지 않는다. 8방향은 체비쇼프 거리.\n    [loop] for (int y = -n; y <= n; y++)\n    {\n        [loop] for (int x = -n; x <= n; x++)\n        {\n            int dist = EightWay > 0.5 ? max(abs(x), abs(y)) : abs(x) + abs(y);\n            // 동적 루프 안에서는 미분 기반 샘플링을 쓸 수 없어 LOD 0으로 샘플한다.\n            if (dist > 0 && dist <= n)\n                neighbor = max(neighbor, SAMPLE_TEXTURE2D_LOD(Tex.tex, Tex.samplerstate, UV + float2(x, y) * texel, 0).a);\n        }\n    }\n}\nfloat outline = neighbor * (1 - texColor.a);\nfloat4 result = lerp(texColor * Tint, OutlineColor, outline);\nRGB = result.rgb;\nAlpha = result.a;"
 }
 
 {
@@ -2024,6 +2146,9 @@
         },
         {
             "m_Id": "a8aaa3f056e6de28b2d7655c4cf75ed3"
+        },
+        {
+            "m_Id": "c4e1a7b2d3f5068192a3b4c5d6e7f801"
         }
     ]
 }
