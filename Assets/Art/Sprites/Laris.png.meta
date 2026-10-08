@@ -169,7 +169,7 @@ TextureImporter:
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Laris_LT
+      name: Laris_LU
       rect:
         serializedVersion: 2
         x: 50
@@ -252,7 +252,7 @@ TextureImporter:
     nameFileIdTable:
       Laris_Down: -2131073498
       Laris_LD: -1913655522418471621
-      Laris_LT: -7225736133559629788
+      Laris_LU: -7225736133559629788
       Laris_Left: 3339889221897421838
       Laris_Up: 9133839876004317546
   mipmapLimitGroupName: 
