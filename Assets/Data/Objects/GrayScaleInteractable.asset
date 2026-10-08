@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 29132637795fe1147ac5f7b77a3c032b, type: 3}
-  m_Name: obj_test_basic
+  m_Name: GrayScaleInteractable
   m_EditorClassIdentifier: Assembly-CSharp::ProjectT.Data.ObjectData
-  id: obj_test_basic
+  id: Temp_Interactable
   kind: 0
-  dialogueNode: Test_Basic
-  recheckDialogueNode: Test_Recheck
+  dialogueNode: Temp_Interactable
+  recheckDialogueNode: Temp_Interactable_Recheck

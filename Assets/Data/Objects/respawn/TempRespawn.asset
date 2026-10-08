@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 29132637795fe1147ac5f7b77a3c032b, type: 3}
-  m_Name: obj_test_item
+  m_Name: TempRespawn
   m_EditorClassIdentifier: Assembly-CSharp::ProjectT.Data.ObjectData
-  id: obj_test_item
-  kind: 1
-  dialogueNode: 
-  recheckDialogueNode: 
+  id: Temp_Respawn
+  kind: 0
+  dialogueNode: Temp_Respawn
+  recheckDialogueNode: Temp_Respawn_Recheck

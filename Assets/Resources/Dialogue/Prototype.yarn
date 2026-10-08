@@ -1,26 +1,19 @@
-title: Test_Basic
+title: Temp_Respawn
 ---
-라리스: 여기는 처음 보는 곳이야.
-라리스: 조금만 더 둘러볼까.
+라리스: 쉴랭
 ===
 
-title: Test_Recheck
+title: Temp_Respawn_Recheck
 ---
-라리스: 아까 본 거야.
+라리스: 힘들다이~
 ===
 
-title: Test_Cutscene
+title: Temp_Interactable
 ---
-라리스: 저건... 뭐지?
-<<Cutscene FallenDieCutScene>>
-라리스: 누군가 쓰러져 있어.
-라리스: 움직이지 않아.
-<<CutsceneEnd>>
-라리스: 방금 그건 뭐였을까.
+라리스: 우왕
 ===
 
-title: Test_Cutscene_AutoEnd
+title: Temp_Interactable_Recheck
 ---
-<<Cutscene FallenDieCutScene>>
-라리스: 눈을 감으면 아직도 보여.
+라리스: 웩 보기싫어
 ===
