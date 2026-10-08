@@ -80,3 +80,6 @@ Docs/.obsidian/
 # MCP 테스트용 스크린샷
 /[Aa]ssets/[Ss]creenshots/
 /[Aa]ssets/[Ss]creenshots.meta
+
+# MCP 서버 설정(로컬 경로 포함, 개인 환경)
+.mcp.json
