@@ -155,21 +155,21 @@ TextureImporter:
         width: 16
         height: 16
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 1681341163741e94d9fb5a3e9817c3da
-      internalID: 72913683
+      spriteID: ba4f942c9eec3a6e0800000000000000
+      internalID: -1827389520399960917
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: GrayScale_Interactable
+      name: GrayScaleTileSet_Interactable
       rect:
         serializedVersion: 2
         x: 22
@@ -177,15 +177,15 @@ TextureImporter:
         width: 20
         height: 30
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: a0ee4c60aad0e8144a500075b4a5454c
-      internalID: 1239788535
+      spriteID: 7f2c4c29ba524dd48a0fa5ddeddc372e
+      internalID: 1221278518
       vertices: []
       indices: 
       edges: []
@@ -194,7 +194,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: b1e44982fdb081e44b3daffa8027a67e
+    spriteID: 46615c676e8b62849a8bede118490ed7
     internalID: 0
     vertices: []
     indices: 
@@ -206,13 +206,12 @@ TextureImporter:
       - key: SpriteEditor.SliceSettings
         value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      GrayScaleTileSet_1: -1827389520399960917
       GrayScaleTileSet_2: 8222353560873923631
       GrayScaleTileSet_3: -1493762291185966784
       GrayScaleTileSet_4: 1316097502998521213
       GrayScaleTileSet_Dark: 7436498615146029604
-      GrayScaleTileSet_Light: 72913683
-      GrayScale_Interactable: 1239788535
+      GrayScaleTileSet_Interactable: 1221278518
+      GrayScaleTileSet_Light: -1827389520399960917
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -24,7 +24,6 @@ namespace ProjectT.Player
 
         readonly List<Candidate> candidates = new List<Candidate>();
         PlayerMovement movement;
-        IInteractable highlighted;
 
         public IInteractable CurrentTarget { get; private set; }
 
@@ -54,7 +53,6 @@ namespace ProjectT.Player
 
         void OnDisable()
         {
-            SetHighlighted(null);
             CurrentTarget = null;
         }
 
@@ -88,7 +86,6 @@ namespace ProjectT.Player
         void Update()
         {
             CurrentTarget = FindBest();
-            SetHighlighted(CurrentTarget);
         }
 
         IInteractable FindBest()
@@ -142,20 +139,6 @@ namespace ProjectT.Player
             if (Mathf.Abs(angle - bestAngle) > Epsilon)
                 return angle < bestAngle;
             return id < bestId;
-        }
-
-        void SetHighlighted(IInteractable target)
-        {
-            if (ReferenceEquals(target, highlighted))
-                return;
-
-            if (highlighted.IsAlive())
-                highlighted.HideHighlight();
-
-            highlighted = target;
-
-            if (target != null)
-                target.ShowHighlight(settings.HighlightColor);
         }
     }
 }

@@ -12,11 +12,11 @@ TagManager:
   - Water
   - UI
   - 
-  - Umia
+  - 
   - Player
   - Interactable
-  - Attackable
-  - NonWalkable
+  - 
+  - 
   - 
   - 
   - 
@@ -41,6 +41,9 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Background
+    uniqueID: 147098367
+    locked: 0
   - name: BackProp
     uniqueID: 1140610011
     locked: 0
@@ -49,6 +52,9 @@ TagManager:
     locked: 0
   - name: FrontProp
     uniqueID: 1617911051
+    locked: 0
+  - name: InteractableBang
+    uniqueID: 149260573
     locked: 0
   m_RenderingLayers:
   - Default

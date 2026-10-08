@@ -19,8 +19,6 @@ namespace ProjectT.Interaction
     public interface IInteractable
     {
         bool CanInteract { get; }
-        void ShowHighlight(Color color);
-        void HideHighlight();
         void Interact(InteractContext context);
     }
 
