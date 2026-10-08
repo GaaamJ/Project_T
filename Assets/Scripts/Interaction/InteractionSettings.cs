@@ -11,11 +11,7 @@ namespace ProjectT.Interaction
         [Tooltip("바라보는 방향 기준 좌우 허용 각도(도). 45면 ±45도")]
         [SerializeField, Range(0f, 180f)] float halfAngle = 45f;
 
-        [Tooltip("하이라이트 외곽선 색. 스프라이트 색은 바꾸지 않는다.")]
-        [SerializeField] Color highlightColor = new Color(1f, 0.85f, 0.2f, 1f);
-
         public float Distance => distance;
         public float HalfAngle => halfAngle;
-        public Color HighlightColor => highlightColor;
     }
 }
