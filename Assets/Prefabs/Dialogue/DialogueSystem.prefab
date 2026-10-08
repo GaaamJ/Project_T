@@ -486,7 +486,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -444954627, guid: 9c5b8010088eb8743986ea157af261a6, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -728,6 +728,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04482b3055e39864092b4da3e90c53a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectT.Dialogue.DialogueService
+  inputLock: {fileID: 0}
 --- !u!114 &8453310923026106724
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -808,7 +809,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -5553295854688466275, guid: 7908d11546a318f4d80ce30ec378224c, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
